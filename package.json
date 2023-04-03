@@ -9,7 +9,9 @@
     "dev:backend": "cd manifold-backend && cargo run",
     "dev:client:web": "cd manifold-client && pnpm run dev:web",
     "dev:client:desktop": "cd manifold-client && pnpm run dev:desktop",
-    "install-all": "run-s install:*",
+    "build:client": "cd manifold-client && pnpm run build",
+    "build:backend": "cd manifold-backend && cargo build --release",
+    "install-all": "run-p install:*",
     "install:root": "pnpm install",
     "install:client": "cd manifold-client && pnpm install"
   },
