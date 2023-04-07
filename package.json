@@ -6,9 +6,9 @@
   "scripts": {
     "dev:web": "run-p dev:backend dev:client:web",
     "dev:desktop": "run-p dev:backend dev:client:desktop",
-    "dev:backend": "cd manifold-backend && cargo run",
     "dev:client:web": "cd manifold-client && pnpm run dev:web",
     "dev:client:desktop": "cd manifold-client && pnpm run dev:desktop",
+    "dev:backend": "cd manifold-backend && cargo run",
     "build:client": "cd manifold-client && pnpm run build",
     "build:backend": "cd manifold-backend && cargo build --release",
     "install-all": "run-p install:*",
