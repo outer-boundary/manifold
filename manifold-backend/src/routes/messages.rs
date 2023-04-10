@@ -1,8 +1,14 @@
-use crate::{models::messages::*, Error};
+use crate::models::messages::*;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use sqlx::MySqlPool;
 
-#[get("/messages")]
+pub fn messages_scope() -> actix_web::Scope {
+    web::scope("/messages")
+        .service(get_messages)
+        .service(add_message)
+}
+
+#[get("/")]
 async fn get_messages(pool: web::Data<MySqlPool>) -> impl Responder {
     let messages = sqlx::query_as!(Message, "SELECT * FROM messages ORDER BY id")
         .fetch_all(pool.as_ref())
@@ -14,7 +20,7 @@ async fn get_messages(pool: web::Data<MySqlPool>) -> impl Responder {
     }
 }
 
-#[post("/messages")]
+#[post("/")]
 async fn add_message(
     pool: web::Data<MySqlPool>,
     new_message: web::Json<NewMessage>,

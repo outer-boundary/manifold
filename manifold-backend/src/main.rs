@@ -5,7 +5,7 @@ mod routes;
 mod util;
 
 use routes::health_check::health_check;
-use routes::messages::{add_message, get_messages};
+use routes::messages::messages_scope;
 use util::environment;
 
 type Error = Box<dyn std::error::Error>;
@@ -23,8 +23,7 @@ async fn main() -> Result<(), Error> {
         App::new()
             .app_data(Data::new(config.db.pool.clone()))
             .service(health_check)
-            .service(get_messages)
-            .service(add_message)
+            .service(messages_scope())
     })
     .bind((config.server.url.host, config.server.url.port))?
     .run()
