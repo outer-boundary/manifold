@@ -1,21 +1,32 @@
-use actix_web::{App, HttpServer};
-use sqlx::mysql;
-use std::env;
+use actix_web::{web::Data, App, HttpServer};
+
+mod routes;
+use routes::messages::{add_message, get_messages};
+
+mod models;
+mod util;
+use util::environment;
+
+type Error = Box<dyn std::error::Error>;
 
 #[actix_web::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv::from_filename(".env")?;
+async fn main() -> Result<(), Error> {
+    let config = environment::init().await?;
 
-    let database_url = env::var("DATABASE_URL")?;
-    let pool = mysql::MySqlPoolOptions::new()
-        .max_connections(5)
-        .connect(&database_url)
-        .await?;
+    println!(
+        "{} server started at {}:{}",
+        config.env, config.server.url.host, config.server.url.port
+    );
 
-    HttpServer::new(|| App::new())
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await?;
+    HttpServer::new(move || {
+        App::new()
+            .app_data(Data::new(config.db.pool.clone()))
+            .service(get_messages)
+            .service(add_message)
+    })
+    .bind((config.server.url.host, config.server.url.port))?
+    .run()
+    .await?;
 
     Ok(())
 }
