@@ -19,7 +19,7 @@ async fn add_message(
     pool: web::Data<MySqlPool>,
     new_message: web::Json<NewMessage>,
 ) -> impl Responder {
-    let result: Result<sqlx::mysql::MySqlQueryResult, sqlx::Error> = sqlx::query_as!(
+    let result = sqlx::query_as!(
         Message,
         "INSERT INTO messages (content) VALUES (?)",
         new_message.content
