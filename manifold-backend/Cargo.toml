@@ -10,3 +10,4 @@ actix-web = "4"
 dotenv = "0.15.0"
 serde = "1.0.159"
 serde_json = "1.0.95"
+sqlx = { version = "0.6.3", features = ["runtime-actix-rustls", "mysql"] }
