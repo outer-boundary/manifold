@@ -6,7 +6,7 @@ pub struct Message {
     pub content: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct NewMessage {
     pub content: String,
 }

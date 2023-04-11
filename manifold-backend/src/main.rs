@@ -23,7 +23,7 @@ async fn main() -> Result<(), Error> {
         App::new()
             .app_data(Data::new(config.db.pool.clone()))
             .service(health_check)
-            .service(messages_scope())
+            .configure(messages_scope)
     })
     .bind((config.server.url.host, config.server.url.port))?
     .run()

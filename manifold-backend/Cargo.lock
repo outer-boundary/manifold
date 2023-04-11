@@ -895,6 +895,7 @@ dependencies = [
  "actix-web",
  "dotenv",
  "env_logger",
+ "once_cell",
  "serde",
  "serde_json",
  "sqlx",

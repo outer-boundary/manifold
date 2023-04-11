@@ -4,6 +4,7 @@ use super::{
     url::{Url, UrlProtocol},
 };
 use crate::Error;
+use once_cell::sync::Lazy;
 use std::{env, fmt::Display};
 
 #[derive(Eq, PartialEq)]
@@ -50,7 +51,8 @@ pub async fn init() -> Result<Configuration, Error> {
     match environment {
         Environment::Development => {
             env::set_var("RUST_LOG", "debug");
-            env_logger::init();
+            static INIT_LOGGER: Lazy<()> = Lazy::new(env_logger::init);
+            let _ = &*INIT_LOGGER;
         }
         Environment::Production => env_file = ".env",
     }
