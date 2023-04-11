@@ -21,7 +21,7 @@ async fn main() -> Result<(), Error> {
     let config = environment::init().await?;
 
     let app_state = AppState {
-        pool: connect_db(&config.db.url).await?,
+        pool: connect_db(&config.db.url, None).await?,
     };
 
     HttpServer::new(move || {

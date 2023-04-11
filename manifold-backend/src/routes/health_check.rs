@@ -15,19 +15,14 @@ async fn health_check(app_state: web::Data<AppState>) -> impl Responder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        util::{database::connect_db, environment},
-        Error,
-    };
+    use crate::{util::tests::TestPool, Error};
     use actix_web::{http::StatusCode, test, web::Data, App};
 
     #[actix_web::test]
     async fn test_health_check() -> Result<(), Error> {
-        let config = environment::init().await?;
+        let pool = TestPool::connect().await?;
 
-        let app_state = AppState {
-            pool: connect_db(&config.db.url).await?,
-        };
+        let app_state = AppState { pool: pool.get() };
 
         let app = test::init_service(
             App::new()
@@ -37,9 +32,11 @@ mod tests {
         .await;
 
         let req = test::TestRequest::get().uri("/health-check").to_request();
-        let resp = test::call_service(&app, req).await;
+        let res = test::call_service(&app, req).await;
 
-        assert_eq!(resp.status(), StatusCode::OK);
+        pool.close().await?;
+
+        assert_eq!(res.status(), StatusCode::OK);
 
         Ok(())
     }
