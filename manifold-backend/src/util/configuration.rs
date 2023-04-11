@@ -1,4 +1,4 @@
-use super::{database::DBPool, url::Url};
+use super::url::Url;
 
 pub struct Configuration {
     pub env: String,
@@ -7,7 +7,7 @@ pub struct Configuration {
 }
 
 pub struct DatabaseConfiguration {
-    pub pool: DBPool,
+    pub url: String,
 }
 
 pub struct ServerConfiguration {

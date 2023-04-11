@@ -1,16 +1,12 @@
+use crate::AppState;
 use actix_web::{get, web, HttpResponse, Responder};
-use sqlx::MySqlPool;
 
 #[get("/health-check")]
-async fn health_check(pool: web::Data<MySqlPool>) -> impl Responder {
-    let connection = pool.acquire().await;
+async fn health_check(app_state: web::Data<AppState>) -> impl Responder {
+    let result = sqlx::query("SELECT 1").execute(&app_state.pool).await;
 
-    if let Ok(mut connection) = connection {
-        let result = sqlx::query("SELECT 1").execute(&mut connection).await;
-
-        if result.is_ok() {
-            return HttpResponse::Ok().finish();
-        }
+    if result.is_ok() {
+        return HttpResponse::Ok().finish();
     }
 
     HttpResponse::ServiceUnavailable().finish()
@@ -19,16 +15,23 @@ async fn health_check(pool: web::Data<MySqlPool>) -> impl Responder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{util::environment, Error};
+    use crate::{
+        util::{database::connect_db, environment},
+        Error,
+    };
     use actix_web::{http::StatusCode, test, web::Data, App};
 
     #[actix_web::test]
     async fn test_health_check() -> Result<(), Error> {
         let config = environment::init().await?;
 
+        let app_state = AppState {
+            pool: connect_db(&config.db.url).await?,
+        };
+
         let app = test::init_service(
             App::new()
-                .app_data(Data::new(config.db.pool))
+                .app_data(Data::new(app_state.clone()))
                 .service(health_check),
         )
         .await;

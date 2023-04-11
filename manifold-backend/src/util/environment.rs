@@ -1,6 +1,5 @@
 use super::{
     configuration::{Configuration, DatabaseConfiguration, ServerConfiguration},
-    database::connect_db,
     url::{Url, UrlProtocol},
 };
 use crate::Error;
@@ -62,7 +61,7 @@ pub async fn init() -> Result<Configuration, Error> {
     Ok(Configuration {
         env: environment.to_string(),
         db: DatabaseConfiguration {
-            pool: connect_db().await?,
+            url: env::var("DATABASE_URL")?,
         },
         server: ServerConfiguration {
             url: Url {

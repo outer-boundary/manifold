@@ -1,16 +1,10 @@
 use crate::Error;
-use sqlx::{
-    mysql::{MySql, MySqlPoolOptions},
-    Pool,
-};
+use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
 
-pub type DBPool = Pool<MySql>;
-
-pub async fn connect_db() -> Result<DBPool, Error> {
-    let database_url = std::env::var("DATABASE_URL")?;
-    let pool = MySqlPoolOptions::new()
-        .max_connections(5)
-        .connect(&database_url)
+pub async fn connect_db(database_url: &str) -> Result<MySqlPool, Error> {
+    let pool: MySqlPool = MySqlPoolOptions::new()
+        .max_connections(10)
+        .connect(database_url)
         .await?;
 
     Ok(pool)

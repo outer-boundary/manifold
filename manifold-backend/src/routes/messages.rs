@@ -1,15 +1,14 @@
-use crate::models::messages::*;
+use crate::{models::messages::*, AppState};
 use actix_web::{get, post, web, HttpResponse, Responder};
-use sqlx::MySqlPool;
 
 pub fn messages_scope(cfg: &mut web::ServiceConfig) {
     cfg.service(get_messages).service(add_message);
 }
 
 #[get("/messages")]
-async fn get_messages(pool: web::Data<MySqlPool>) -> impl Responder {
+async fn get_messages(app_state: web::Data<AppState>) -> impl Responder {
     let messages = sqlx::query_as!(Message, "SELECT * FROM messages ORDER BY id")
-        .fetch_all(pool.as_ref())
+        .fetch_all(&app_state.pool)
         .await;
 
     match messages {
@@ -20,7 +19,7 @@ async fn get_messages(pool: web::Data<MySqlPool>) -> impl Responder {
 
 #[post("/messages")]
 async fn add_message(
-    pool: web::Data<MySqlPool>,
+    app_state: web::Data<AppState>,
     new_message: web::Json<NewMessage>,
 ) -> impl Responder {
     let result = sqlx::query_as!(
@@ -28,7 +27,7 @@ async fn add_message(
         "INSERT INTO messages (content) VALUES (?)",
         new_message.content
     )
-    .execute(pool.as_ref())
+    .execute(&app_state.pool)
     .await;
 
     match result {
@@ -40,16 +39,23 @@ async fn add_message(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{util::environment, Error};
+    use crate::{
+        util::{database::connect_db, environment},
+        Error,
+    };
     use actix_web::{http::StatusCode, test, web::Data, App};
 
     #[actix_web::test]
     async fn test_get_messages() -> Result<(), Error> {
         let config = environment::init().await?;
 
+        let app_state = AppState {
+            pool: connect_db(&config.db.url).await?,
+        };
+
         let app = test::init_service(
             App::new()
-                .app_data(Data::new(config.db.pool.clone()))
+                .app_data(Data::new(app_state.clone()))
                 .service(get_messages),
         )
         .await;
@@ -66,9 +72,13 @@ mod tests {
     async fn test_add_message() -> Result<(), Error> {
         let config = environment::init().await?;
 
+        let app_state = AppState {
+            pool: connect_db(&config.db.url).await?,
+        };
+
         let app = test::init_service(
             App::new()
-                .app_data(Data::new(config.db.pool.clone()))
+                .app_data(Data::new(app_state.clone()))
                 .service(add_message),
         )
         .await;
