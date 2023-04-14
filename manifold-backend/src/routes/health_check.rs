@@ -34,8 +34,6 @@ mod tests {
         let req = test::TestRequest::get().uri("/health-check").to_request();
         let res = test::call_service(&app, req).await;
 
-        pool.close().await?;
-
         assert_eq!(res.status(), StatusCode::OK);
 
         Ok(())

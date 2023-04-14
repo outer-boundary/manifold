@@ -58,8 +58,6 @@ mod tests {
         let req = test::TestRequest::get().uri("/messages").to_request();
         let res = test::call_service(&app, req).await;
 
-        pool.close().await?;
-
         assert_eq!(res.status(), StatusCode::OK);
 
         Ok(())
@@ -87,8 +85,6 @@ mod tests {
             .set_json(&new_message)
             .to_request();
         let res = test::call_service(&app, req).await;
-
-        pool.close().await?;
 
         assert_eq!(res.status(), StatusCode::CREATED);
 

@@ -1,3 +1,4 @@
+use std::panic::AssertUnwindSafe;
 
 use crate::Error;
 use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
@@ -23,10 +24,13 @@ impl TestPool {
     pub fn get(&self) -> MySqlPool {
         self.pool.clone()
     }
+}
 
-    pub async fn close(&self) -> Result<(), Error> {
-        sqlx::query("ROLLBACK").execute(&self.pool).await?;
-
-        Ok(())
+impl Drop for TestPool {
+    fn drop(&mut self) {
+        let pool = self.get();
+        actix_web::rt::spawn(async move {
+            sqlx::query("ROLLBACK").execute(&pool).await.ok();
+        });
     }
 }
