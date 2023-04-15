@@ -7,9 +7,18 @@ pub fn messages_scope(cfg: &mut web::ServiceConfig) {
 
 #[get("/messages")]
 async fn get_messages(app_state: web::Data<AppState>) -> impl Responder {
-    let messages = sqlx::query_as!(Message, "SELECT * FROM messages ORDER BY id")
-        .fetch_all(&app_state.pool)
-        .await;
+    let messages: sqlx::Result<Vec<Message>> = sqlx::query_as!(
+        DbMessage,
+        "SELECT BIN_TO_UUID(id, true) as id, content FROM messages ORDER BY id"
+    )
+    .fetch_all(&app_state.pool)
+    .await
+    .map(|db_messages| {
+        db_messages
+            .iter()
+            .map(|db_message| db_message.clone().into())
+            .collect()
+    });
 
     match messages {
         Ok(messages) => HttpResponse::Ok().json(messages),
@@ -22,8 +31,7 @@ async fn add_message(
     app_state: web::Data<AppState>,
     new_message: web::Json<NewMessage>,
 ) -> impl Responder {
-    let result = sqlx::query_as!(
-        Message,
+    let result = sqlx::query!(
         "INSERT INTO messages (content) VALUES (?)",
         new_message.content
     )
