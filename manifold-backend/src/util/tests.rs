@@ -1,5 +1,3 @@
-use std::panic::AssertUnwindSafe;
-
 use crate::Error;
 use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
 
