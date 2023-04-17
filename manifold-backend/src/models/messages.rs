@@ -1,6 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Serialize, Deserialize)]
+pub struct Message {
+    pub id: String,
+    pub content: String,
+}
+
+#[derive(Clone, Serialize)]
 pub struct DbMessage {
     pub id: Option<String>,
     pub content: String,
@@ -15,12 +21,6 @@ impl From<DbMessage> for Message {
             content: db_message.content,
         }
     }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Message {
-    pub id: String,
-    pub content: String,
 }
 
 #[derive(Serialize, Deserialize)]
