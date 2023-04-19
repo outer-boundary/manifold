@@ -45,18 +45,16 @@ pub async fn init() -> Result<Configuration, Error> {
     let environment =
         Environment::try_from(env::var("ENVIRONMENT").unwrap_or("development".into()))?;
 
-    let mut env_file = ".env.dev";
-
     match environment {
         Environment::Development => {
             env::set_var("RUST_LOG", "debug");
             static INIT_LOGGER: Lazy<()> = Lazy::new(env_logger::init);
             let _ = &*INIT_LOGGER;
         }
-        Environment::Production => env_file = ".env",
+        Environment::Production => (),
     }
 
-    dotenv::from_filename(env_file)?;
+    dotenv::dotenv()?;
 
     Ok(Configuration {
         env: environment.to_string(),
