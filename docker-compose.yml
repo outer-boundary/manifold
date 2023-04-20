@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  backend:
+    build: ./manifold-backend
+    ports:
+      - "8000:8000"
+  client:
+    build: ./manifold-client
+    ports:
+      - "80:80"
