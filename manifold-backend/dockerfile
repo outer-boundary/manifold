@@ -5,13 +5,13 @@ FROM rust:latest AS builder
 WORKDIR /app
 
 # Copy the Rust manifest files
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml Cargo.lock .env ./
 
 # Create a dummy source code file to build dependencies
 RUN mkdir src && echo 'fn main() {}' > src/main.rs
 
 # Cache and build dependencies
-RUN cargo build --release
+RUN cargo build --release --target=x86_64-unknown-linux-gnu
 
 # Remove the dummy source code file
 RUN rm -f src/main.rs
@@ -20,7 +20,7 @@ RUN rm -f src/main.rs
 COPY src ./src
 
 # Build the project
-RUN cargo build --release
+RUN cargo build --release --target=x86_64-unknown-linux-gnu
 
 # Runtime image
 FROM debian:buster-slim
@@ -29,7 +29,7 @@ FROM debian:buster-slim
 WORKDIR /app
 
 # Copy the binary from the builder image
-COPY --from=builder /app/target/release/manifold-backend /app/
+COPY --from=builder /app/.env /app/target/x86_64-unknown-linux-gnu/release/manifold-backend /app/
 
 # Expose the port the backend listens on
 EXPOSE 8000
