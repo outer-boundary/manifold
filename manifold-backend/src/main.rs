@@ -24,9 +24,6 @@ async fn main() -> Result<(), Error> {
         pool: connect_db(&config.db.url, None).await?,
     };
 
-    // Apply the migrations to the database before running the server.
-    sqlx::migrate!().run(&app_state.pool).await?;
-
     HttpServer::new(move || {
         App::new()
             .app_data(Data::new(app_state.clone()))
