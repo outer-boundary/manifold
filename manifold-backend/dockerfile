@@ -1,20 +1,63 @@
-# Use the main official rust docker image as the builder image
-FROM rust:latest as builder
+ARG ENV_FILE=.env
 
-# copy source into the docker image
-COPY . /app
+###########################
+## Base cargo-chef Image ##
+###########################
+
+FROM rust:latest AS chef
 WORKDIR /app
+RUN cargo install cargo-chef
+
+###################
+## Planner Image ##
+###################
+
+# Generate a recipe file for dependencies
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+##################
+## Cacher Image ##
+##################
+
+# Build the dependencies
+FROM chef AS cacher
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+###################
+## Builder Image ##
+###################
+
+# Use the main official rust docker image as the builder image
+FROM rust:latest AS builder
+ARG ENV_FILE
+
+# Copy source into the docker image
+WORKDIR /app
+COPY . .
+COPY ${ENV_FILE} .env
+
+# Copy dependencies from cacher image
+COPY --from=cacher /app/target target
+COPY --from=cacher /usr/local/cargo /usr/local/cargo
 
 # Build the backend
 RUN cargo build --release
 
+###################
+## Runtime Image ##
+###################
+
 # Use google distroless image as runtime image
 FROM gcr.io/distroless/cc-debian11
+ARG ENV_FILE
 
 # Copy built backend from builder image
-COPY --from=builder /app/target/release/manifold-backend /app/manifold-backend
-COPY --from=builder /app/.env /app/.env
 WORKDIR /app
+COPY --from=builder /app/target/release/manifold-backend manifold-backend
+COPY --from=builder /app/${ENV_FILE} .env
 
 # Start the backend
 CMD ["./manifold-backend"]
