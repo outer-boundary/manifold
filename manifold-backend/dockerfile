@@ -1,38 +1,10 @@
-# Use the official Rust image as the base image
-FROM rust:latest AS builder
+# Use the main official rust docker image as the builder
+FROM rust:latest as builder
 
-# Set the working directory
+COPY . /app
+
 WORKDIR /app
 
-# Copy the Rust manifest files
-COPY Cargo.toml Cargo.lock .env ./
+RUN cargo build --release
 
-# Create a dummy source code file to build dependencies
-RUN mkdir src && echo 'fn main() {}' > src/main.rs
-
-# Cache and build dependencies
-RUN cargo build --release --target=x86_64-unknown-linux-gnu
-
-# Remove the dummy source code file
-RUN rm -f src/main.rs
-
-# Copy the actual source code
-COPY src ./src
-
-# Build the project
-RUN cargo build --release --target=x86_64-unknown-linux-gnu
-
-# Runtime image
-FROM debian:buster-slim
-
-# Set the working directory
-WORKDIR /app
-
-# Copy the binary from the builder image
-COPY --from=builder /app/.env /app/target/x86_64-unknown-linux-gnu/release/manifold-backend /app/
-
-# Expose the port the backend listens on
-EXPOSE 8000
-
-# Run the backend
-CMD ["/app/manifold-backend"]
+CMD ["./target/release/manifold-backend"]
