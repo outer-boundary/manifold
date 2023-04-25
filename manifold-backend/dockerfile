@@ -1,10 +1,20 @@
-# Use the main official rust docker image as the builder
+# Use the main official rust docker image as the builder image
 FROM rust:latest as builder
 
+# copy source into the docker image
 COPY . /app
-
 WORKDIR /app
 
+# Build the backend
 RUN cargo build --release
 
-CMD ["./target/release/manifold-backend"]
+# Use google distroless image as runtime image
+FROM gcr.io/distroless/cc-debian11
+
+# Copy built backend from builder image
+COPY --from=builder /app/target/release/manifold-backend /app/manifold-backend
+COPY --from=builder /app/.env /app/.env
+WORKDIR /app
+
+# Start the backend
+CMD ["./manifold-backend"]
