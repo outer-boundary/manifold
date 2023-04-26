@@ -6,19 +6,20 @@
   "scripts": {
     "dev:web": "run-p dev:backend dev:client:web",
     "dev:desktop": "run-p dev:backend dev:client:desktop",
-    "dev:backend": "cd manifold-backend && cargo run",
     "dev:client:web": "cd manifold-client && pnpm run dev:web",
     "dev:client:desktop": "cd manifold-client && pnpm run dev:desktop",
+    "dev:backend": "cd manifold-backend && cargo run",
+    "test:backend": "cd manifold-backend && cargo test",
     "build:client": "cd manifold-client && pnpm run build",
-    "build:backend": "cd manifold-backend && cargo build --release",
-    "install-all": "run-p install:*",
-    "install:root": "pnpm install",
+    "build:backend": "cd manifold-backend && cross-env ENVIRONMENT=production cargo build --release",
+    "postinstall": "run-p install:*",
     "install:client": "cd manifold-client && pnpm install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "npm-run-all": "^4.1.5"
   }
 }
