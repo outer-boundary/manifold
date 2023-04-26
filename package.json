@@ -15,7 +15,7 @@
     "migrations:run": "pnpm run migration run",
     "build:backend": "cd manifold-backend && cross-env ENVIRONMENT=production cargo build --release",
     "build:client": "cd manifold-client && pnpm run build",
-    "install-all": "pnpm install && run-p install:*",
+    "postinstall": "run-p install:*",
     "install:backend": "cd manifold-backend && cargo install sqlx-cli",
     "install:client": "cd manifold-client && pnpm install"
   },
