@@ -12,7 +12,7 @@
     "test:backend": "cd manifold-backend && cargo test",
     "build:client": "cd manifold-client && pnpm run build",
     "build:backend": "cd manifold-backend && cross-env ENVIRONMENT=production cargo build --release",
-    "install-all": "pnpm install && run-p install:*",
+    "postinstall": "run-p install:*",
     "install:client": "cd manifold-client && pnpm install"
   },
   "keywords": [],
