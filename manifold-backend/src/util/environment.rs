@@ -7,7 +7,7 @@ use once_cell::sync::Lazy;
 use std::{env, fmt::Display};
 
 #[derive(Eq, PartialEq)]
-enum Environment {
+pub enum Environment {
     Production,
     Development,
 }
@@ -57,7 +57,7 @@ pub async fn init() -> Result<Configuration, Error> {
     dotenv::dotenv()?;
 
     Ok(Configuration {
-        env: environment.to_string(),
+        env: environment,
         db: DatabaseConfiguration {
             url: env::var("DATABASE_URL")?,
         },

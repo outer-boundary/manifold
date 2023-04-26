@@ -4,15 +4,33 @@ This is the backend for Manifold.
 
 ---
 
-## Style Guide
+## Setup
 
-### Routes
+### Local MySQL Database
 
-Routes should use `kebab-case` formatting, and should not contain any uppercase characters.
+To set up a local MySQL database to develop with, go to the following link and follow the installation instructions:
+https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/
+
+Ensure that you select the `Developer Default` option when selecting the installation presets.
 
 ---
 
 ## Database
+
+### Production Database
+
+We use planetscale as our production database provider. Planetscale supports branching for databases, so make sure that
+any schema changes are applied to a development branch and then merged into the production database branch. This allows
+any invalid schema changes to be caught before they are applied to production.
+
+### Local Development
+
+When developping locally, run `pnpm run migrations:add {migration_name}` to create a new migration file inside the
+`migrations` folder. This file can be used to apply schema changes to the database. Once you have finished making your
+schema changes, run `pnpm run migrations:apply` to apply all migrations to your local database. This will also be done
+automatically every time the backend is started. The same `migrations:apply` command can be used when connected to the
+planetscale database to apply the migrations to the production server. This should be done to ensure the dev and
+production environments remain consistent.
 
 ### ID
 
@@ -35,3 +53,11 @@ IDs should be stored as type `binary(16) NOT NULL DEFAULT (uuid_to_bin(uuid(), t
   `uuid_to_bin` or `bin_to_uuid` function.
 - `PRIMARY KEY`: This sets the id as the primary key value of the database. This ensures that each entry in the column
   is always unique.
+
+---
+
+## Style Guide
+
+### Routes
+
+Routes should use `kebab-case` formatting, and should not contain any uppercase characters.
