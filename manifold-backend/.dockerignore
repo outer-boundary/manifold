@@ -1,0 +1,9 @@
+target/
+migrations/
+
+.dockerignore
+dockerfile
+
+.gitignore
+.git/
+*.md

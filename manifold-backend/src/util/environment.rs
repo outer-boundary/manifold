@@ -50,11 +50,11 @@ pub async fn init() -> Result<Configuration, Error> {
             env::set_var("RUST_LOG", "debug");
             static INIT_LOGGER: Lazy<()> = Lazy::new(env_logger::init);
             let _ = &*INIT_LOGGER;
+
+            dotenv::dotenv()?;
         }
         Environment::Production => (),
     }
-
-    dotenv::dotenv()?;
 
     Ok(Configuration {
         env: environment,

@@ -1,0 +1,33 @@
+# Use the official Node.js image as the base image
+FROM node:latest AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+
+# Copy package.json, pnpm-lock.yaml, and other necessary files
+COPY package.json pnpm-lock.yaml .npmrc ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy the source code
+COPY . .
+
+# Build the client
+RUN pnpm run build 2>&1 | tee build_output.log || (cat build_output.log && exit 1)
+
+# Runtime image
+FROM nginx:alpine
+
+# Copy the build output from the builder image
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Expose the port the client listens on
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
