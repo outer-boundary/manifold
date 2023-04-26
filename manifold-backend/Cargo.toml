@@ -3,11 +3,8 @@ name = "manifold-backend"
 version = "0.1.0"
 edition = "2021"
 
-[package.metadata.scripts]
-
 [dependencies]
 actix-web = "4"
-cargo-run-script = "0.1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 once_cell = "1.17.1"
