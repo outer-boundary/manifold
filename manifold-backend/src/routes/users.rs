@@ -1,62 +1,54 @@
-use crate::{models::messages::*, AppState};
+use crate::{models::users::*, AppState};
 use actix_web::{get, post, web, HttpResponse, Responder};
 
-pub fn messages_scope(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_messages)
-        .service(get_message)
-        .service(add_message);
+pub fn users_scope(cfg: &mut web::ServiceConfig) {
+    cfg.service(get_users).service(get_user).service(add_user);
 }
 
-#[get("/messages")]
-async fn get_messages(app_state: web::Data<AppState>) -> impl Responder {
-    let messages: sqlx::Result<Vec<Message>> = sqlx::query_as!(
-        DbMessage,
-        "SELECT BIN_TO_UUID(id, true) as id, content FROM messages ORDER BY id"
+#[get("/users")]
+async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
+    let users: sqlx::Result<Vec<User>> = sqlx::query_as!(
+        DbUser,
+        "SELECT BIN_TO_UUID(id, true) as id, content FROM users ORDER BY id"
     )
     .fetch_all(&app_state.pool)
     .await
-    .map(|db_messages| {
-        db_messages
+    .map(|db_users| {
+        db_users
             .iter()
-            .map(|db_message| db_message.clone().into())
+            .map(|db_user| db_user.clone().into())
             .collect()
     });
 
-    match messages {
-        Ok(messages) => HttpResponse::Ok().json(messages),
+    match users {
+        Ok(users) => HttpResponse::Ok().json(users),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
 }
 
-#[get("/messages/{id}")]
-async fn get_message(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
-    let message: sqlx::Result<Option<Message>> = sqlx::query_as!(
-        DbMessage,
-        "SELECT BIN_TO_UUID(id, true) as id, content FROM messages WHERE id = UUID_TO_BIN(?, true)",
+#[get("/users/{id}")]
+async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
+    let user: sqlx::Result<Option<User>> = sqlx::query_as!(
+        DbUser,
+        "SELECT BIN_TO_UUID(id, true) as id, content FROM users WHERE id = UUID_TO_BIN(?, true)",
         id.into_inner()
     )
     .fetch_optional(&app_state.pool)
     .await
-    .map(|db_message| db_message.map(|db_message| db_message.into()));
+    .map(|db_user| db_user.map(|db_user| db_user.into()));
 
-    match message {
-        Ok(Some(message)) => HttpResponse::Ok().json(message),
+    match user {
+        Ok(Some(user)) => HttpResponse::Ok().json(user),
         Ok(None) => HttpResponse::NotFound().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
 }
 
-#[post("/messages")]
-async fn add_message(
-    app_state: web::Data<AppState>,
-    new_message: web::Json<NewMessage>,
-) -> impl Responder {
-    let result = sqlx::query!(
-        "INSERT INTO messages (content) VALUES (?)",
-        new_message.content
-    )
-    .execute(&app_state.pool)
-    .await;
+#[post("/users")]
+async fn add_user(app_state: web::Data<AppState>, new_user: web::Json<NewUser>) -> impl Responder {
+    let result = sqlx::query!("INSERT INTO users (content) VALUES (?)", new_user.content)
+        .execute(&app_state.pool)
+        .await;
 
     match result {
         Ok(_) => HttpResponse::Created().finish(),
@@ -73,7 +65,7 @@ mod tests {
     use uuid::Uuid;
 
     #[actix_web::test]
-    async fn test_get_messages() -> Result<(), Error> {
+    async fn test_get_users() -> Result<(), Error> {
         let pool = TestPool::connect().await?;
 
         let app_state = AppState { pool: pool.get() };
@@ -81,11 +73,11 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(get_messages),
+                .service(get_users),
         )
         .await;
 
-        let req = test::TestRequest::get().uri("/messages").to_request();
+        let req = test::TestRequest::get().uri("/users").to_request();
         let res = test::call_service(&app, req).await;
 
         assert_eq!(res.status(), StatusCode::OK);
@@ -94,7 +86,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn test_get_message() -> Result<(), Error> {
+    async fn test_get_user() -> Result<(), Error> {
         let pool = TestPool::connect().await?;
 
         let app_state = AppState { pool: pool.get() };
@@ -102,34 +94,34 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(get_message),
+                .service(get_user),
         )
         .await;
 
-        let message_id = Uuid::new_v4().to_string();
-        let new_message = NewMessage {
-            content: "Test message".into(),
+        let user_id = Uuid::new_v4().to_string();
+        let new_user = NewUser {
+            content: "Test user".into(),
         };
 
         let result: sqlx::Result<mysql::MySqlQueryResult> = sqlx::query!(
-            "INSERT INTO messages (id, content) VALUES (UUID_TO_BIN(?, true), ?)",
-            message_id,
-            new_message.content
+            "INSERT INTO users (id, content) VALUES (UUID_TO_BIN(?, true), ?)",
+            user_id,
+            new_user.content
         )
         .execute(&app_state.pool)
         .await;
 
         if result.is_ok() {
             let req = test::TestRequest::get()
-                .uri(&format!("/messages/{}", message_id))
+                .uri(&format!("/users/{}", user_id))
                 .to_request();
             let res = test::call_service(&app, req).await;
 
             assert_eq!(res.status(), StatusCode::OK);
 
-            let message: Message = test::read_body_json(res).await;
-            assert_eq!(message.id, message_id);
-            assert_eq!(message.content, new_message.content);
+            let user: User = test::read_body_json(res).await;
+            assert_eq!(user.id, user_id);
+            assert_eq!(user.content, new_user.content);
 
             return Ok(());
         }
@@ -138,7 +130,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn test_get_message_not_found() -> Result<(), Error> {
+    async fn test_get_user_not_found() -> Result<(), Error> {
         let pool = TestPool::connect().await?;
 
         let app_state = AppState { pool: pool.get() };
@@ -146,13 +138,13 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(get_message),
+                .service(get_user),
         )
         .await;
 
         let non_existent_id = Uuid::new_v4().to_string();
         let req = test::TestRequest::get()
-            .uri(&format!("/messages/{}", non_existent_id))
+            .uri(&format!("/users/{}", non_existent_id))
             .to_request();
         let res = test::call_service(&app, req).await;
 
@@ -162,7 +154,7 @@ mod tests {
     }
 
     #[actix_web::test]
-    async fn test_add_message() -> Result<(), Error> {
+    async fn test_add_user() -> Result<(), Error> {
         let pool = TestPool::connect().await?;
 
         let app_state = AppState { pool: pool.get() };
@@ -170,17 +162,17 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(add_message),
+                .service(add_user),
         )
         .await;
 
-        let new_message = NewMessage {
-            content: "Test message".into(),
+        let new_user = NewUser {
+            content: "Test user".into(),
         };
 
         let req = test::TestRequest::post()
-            .uri("/messages")
-            .set_json(&new_message)
+            .uri("/users")
+            .set_json(&new_user)
             .to_request();
         let res = test::call_service(&app, req).await;
 

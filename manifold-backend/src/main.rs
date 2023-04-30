@@ -5,7 +5,7 @@ mod util;
 use crate::util::database::connect_db;
 use actix_web::{web::Data, App, HttpServer};
 use routes::health_check::health_check;
-use routes::messages::messages_scope;
+use routes::users::users_scope;
 use sqlx::MySqlPool;
 use util::environment;
 
@@ -28,7 +28,7 @@ async fn main() -> Result<(), Error> {
         App::new()
             .app_data(Data::new(app_state.clone()))
             .service(health_check)
-            .configure(messages_scope)
+            .configure(users_scope)
     })
     .bind((config.server.url.host, config.server.url.port))?
     .run()
