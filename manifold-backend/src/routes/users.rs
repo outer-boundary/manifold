@@ -9,7 +9,7 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
     let users: sqlx::Result<Vec<User>> = sqlx::query_as!(
         DbUser,
-        "SELECT BIN_TO_UUID(id, true) as id, username FROM users ORDER BY id"
+        "SELECT bin_to_uuid(id, true) AS id, username FROM users ORDER BY id"
     )
     .fetch_all(&app_state.pool)
     .await
@@ -30,7 +30,7 @@ async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
 async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
     let user: sqlx::Result<Option<User>> = sqlx::query_as!(
         DbUser,
-        "SELECT BIN_TO_UUID(id, true) as id, username FROM users WHERE id = UUID_TO_BIN(?, true)",
+        "SELECT bin_to_uuid(id, true) AS id, username FROM users WHERE id = uuid_to_bin(?, true)",
         id.into_inner()
     )
     .fetch_optional(&app_state.pool)
@@ -104,7 +104,7 @@ mod tests {
         };
 
         let result: sqlx::Result<mysql::MySqlQueryResult> = sqlx::query!(
-            "INSERT INTO users (id, username) VALUES (UUID_TO_BIN(?, true), ?)",
+            "INSERT INTO users (id, username) VALUES (uuid_to_bin(?, true), ?)",
             user_id,
             new_user.username
         )
