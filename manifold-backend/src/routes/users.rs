@@ -9,7 +9,7 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
     let users: sqlx::Result<Vec<User>> = sqlx::query_as!(
         DbUser,
-        "SELECT BIN_TO_UUID(id, true) as id, content FROM users ORDER BY id"
+        "SELECT BIN_TO_UUID(id, true) as id, username FROM users ORDER BY id"
     )
     .fetch_all(&app_state.pool)
     .await
@@ -30,7 +30,7 @@ async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
 async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
     let user: sqlx::Result<Option<User>> = sqlx::query_as!(
         DbUser,
-        "SELECT BIN_TO_UUID(id, true) as id, content FROM users WHERE id = UUID_TO_BIN(?, true)",
+        "SELECT BIN_TO_UUID(id, true) as id, username FROM users WHERE id = UUID_TO_BIN(?, true)",
         id.into_inner()
     )
     .fetch_optional(&app_state.pool)
@@ -46,7 +46,7 @@ async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl
 
 #[post("/users")]
 async fn add_user(app_state: web::Data<AppState>, new_user: web::Json<NewUser>) -> impl Responder {
-    let result = sqlx::query!("INSERT INTO users (content) VALUES (?)", new_user.content)
+    let result = sqlx::query!("INSERT INTO users (username) VALUES (?)", new_user.username)
         .execute(&app_state.pool)
         .await;
 
@@ -100,13 +100,13 @@ mod tests {
 
         let user_id = Uuid::new_v4().to_string();
         let new_user = NewUser {
-            content: "Test user".into(),
+            username: "Test user".into(),
         };
 
         let result: sqlx::Result<mysql::MySqlQueryResult> = sqlx::query!(
-            "INSERT INTO users (id, content) VALUES (UUID_TO_BIN(?, true), ?)",
+            "INSERT INTO users (id, username) VALUES (UUID_TO_BIN(?, true), ?)",
             user_id,
-            new_user.content
+            new_user.username
         )
         .execute(&app_state.pool)
         .await;
@@ -121,7 +121,7 @@ mod tests {
 
             let user: User = test::read_body_json(res).await;
             assert_eq!(user.id, user_id);
-            assert_eq!(user.content, new_user.content);
+            assert_eq!(user.username, new_user.username);
 
             return Ok(());
         }
@@ -167,7 +167,7 @@ mod tests {
         .await;
 
         let new_user = NewUser {
-            content: "Test user".into(),
+            username: "Test user".into(),
         };
 
         let req = test::TestRequest::post()

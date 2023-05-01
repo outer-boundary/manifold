@@ -7,7 +7,7 @@ pub struct TestPool {
 
 impl TestPool {
     pub async fn connect() -> Result<Self, Error> {
-        dotenv::from_filename(".env.dev")?;
+        dotenv::dotenv()?;
 
         let pool = MySqlPoolOptions::new()
             .max_connections(1)

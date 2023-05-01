@@ -42,16 +42,16 @@ impl Display for Environment {
 }
 
 pub async fn init() -> Result<Configuration, Error> {
+    dotenv::dotenv()?;
+
     let environment =
-        Environment::try_from(env::var("ENVIRONMENT").unwrap_or("development".into()))?;
+        Environment::try_from(env::var("ENVIRONMENT").unwrap_or_else(|_| "development".into()))?;
 
     match environment {
         Environment::Development => {
             env::set_var("RUST_LOG", "debug");
             static INIT_LOGGER: Lazy<()> = Lazy::new(env_logger::init);
             let _ = &*INIT_LOGGER;
-
-            dotenv::dotenv()?;
         }
         Environment::Production => (),
     }
