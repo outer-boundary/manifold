@@ -30,7 +30,7 @@ async fn main() -> Result<(), Error> {
             .service(health_check)
             .configure(users_scope)
     })
-    .bind((config.server.url.host, config.server.url.port))?
+    .bind(config.server.url)?
     .run()
     .await?;
 

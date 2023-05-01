@@ -1,7 +1,4 @@
-use super::{
-    configuration::{Configuration, DatabaseConfiguration, ServerConfiguration},
-    url::{Url, UrlProtocol},
-};
+use super::configuration::{Configuration, DatabaseConfiguration, ServerConfiguration};
 use crate::Error;
 use once_cell::sync::Lazy;
 use std::{env, fmt::Display};
@@ -62,12 +59,10 @@ pub async fn init() -> Result<Configuration, Error> {
             url: env::var("DATABASE_URL")?,
         },
         server: ServerConfiguration {
-            url: Url {
-                protocol: UrlProtocol::Http,
-                host: env::var("SERVER_ADDRESS")?,
-                port: env::var("SERVER_PORT")?.parse()?,
-                path: vec![].into(),
-            },
+            url: (
+                env::var("SERVER_ADDRESS")?,
+                env::var("SERVER_PORT")?.parse()?,
+            ),
         },
     })
 }

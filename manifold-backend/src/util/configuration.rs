@@ -1,4 +1,4 @@
-use super::{environment::Environment, url::Url};
+use super::environment::Environment;
 
 pub struct Configuration {
     pub env: Environment,
@@ -11,5 +11,5 @@ pub struct DatabaseConfiguration {
 }
 
 pub struct ServerConfiguration {
-    pub url: Url,
+    pub url: (String, u16),
 }
