@@ -1,15 +1,15 @@
-use crate::AppState;
+use crate::{models::error::Error, AppState};
 use actix_web::{get, web, HttpResponse, Responder};
 
 #[get("/health-check")]
 async fn health_check(app_state: web::Data<AppState>) -> impl Responder {
     let result = sqlx::query("SELECT 1").execute(&app_state.pool).await;
 
-    if result.is_ok() {
-        return HttpResponse::Ok().finish();
+    match result {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::ServiceUnavailable()
+            .json(Error::new(0, "Unable to connect to database".into())),
     }
-
-    HttpResponse::ServiceUnavailable().finish()
 }
 
 #[cfg(test)]

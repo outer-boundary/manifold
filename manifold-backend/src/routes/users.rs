@@ -1,4 +1,8 @@
-use crate::{models::users::*, util::url::full_uri, AppState};
+use crate::{
+    models::{error::Error, users::*},
+    util::url::full_uri,
+    AppState,
+};
 use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse, Responder};
 use uuid::Uuid;
 
@@ -26,16 +30,21 @@ async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
 
     match users {
         Ok(users) => HttpResponse::Ok().json(users),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+        Err(e) => HttpResponse::InternalServerError().json(
+            Error::new(0, "Error occurred while trying to list all users".into())
+                .description(e.to_string()),
+        ),
     }
 }
 
 #[get("/users/{id}")]
 async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
+    let user_id = id.into_inner();
+
     let user: sqlx::Result<Option<User>> = sqlx::query_as!(
         DbUser,
         "SELECT bin_to_uuid(id, true) AS id, username FROM users WHERE id = uuid_to_bin(?, true)",
-        id.into_inner()
+        user_id
     )
     .fetch_optional(&app_state.pool)
     .await
@@ -43,8 +52,19 @@ async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl
 
     match user {
         Ok(Some(user)) => HttpResponse::Ok().json(user),
-        Ok(None) => HttpResponse::NotFound().finish(),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+        Ok(None) => {
+            HttpResponse::NotFound().json(Error::new(0, format!("No user with id '{}'", user_id)))
+        }
+        Err(e) => HttpResponse::InternalServerError().json(
+            Error::new(
+                0,
+                format!(
+                    "Error occurred while trying to get user with id '{}'",
+                    user_id
+                ),
+            )
+            .description(e.to_string()),
+        ),
     }
 }
 
@@ -63,8 +83,9 @@ async fn add_user(
     .execute(&app_state.pool)
     .await;
 
-    if result.is_ok() {
-        let user: sqlx::Result<Option<User>> = sqlx::query_as!(
+    match result {
+        Ok(_) => {
+            let user: sqlx::Result<Option<User>> = sqlx::query_as!(
                 DbUser,
                 "SELECT bin_to_uuid(id, true) AS id, username FROM users WHERE id = uuid_to_bin(?, true)",
                 user_id
@@ -73,17 +94,34 @@ async fn add_user(
             .await
             .map(|db_user| db_user.map(|db_user| db_user.into()));
 
-        if let Ok(Some(user)) = user {
-            return HttpResponse::Created()
-                .append_header((
-                    header::LOCATION,
-                    format!("{}/{}", full_uri(&request), user_id),
-                ))
-                .json(user);
+            match user {
+                Ok(Some(user)) => HttpResponse::Created()
+                    .append_header((
+                        header::LOCATION,
+                        format!("{}/{}", full_uri(&request), user_id),
+                    ))
+                    .json(user),
+                Ok(None) => HttpResponse::InternalServerError().json(Error::new(
+                    0,
+                    format!("Could not find newly created user with id '{}'", user_id),
+                )),
+                Err(e) => HttpResponse::InternalServerError().json(
+                    Error::new(
+                        0,
+                        format!(
+                            "Error occurred while trying to get newly created user with id '{}'",
+                            user_id
+                        ),
+                    )
+                    .description(e.to_string()),
+                ),
+            }
         }
+        Err(e) => HttpResponse::InternalServerError().json(
+            Error::new(0, "Error occurred while trying to create new user".into())
+                .description(e.to_string()),
+        ),
     }
-
-    HttpResponse::InternalServerError().finish()
 }
 
 #[delete("/users/{id}")]
@@ -97,7 +135,8 @@ async fn delete_user(app_state: web::Data<AppState>, id: web::Path<String>) -> i
 
     match user {
         Ok(_) => HttpResponse::NoContent().finish(),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+        Err(e) => HttpResponse::InternalServerError()
+            .json(Error::new(0, "Unable to create new user".into()).description(e.to_string())),
     }
 }
 
