@@ -6,7 +6,7 @@ async fn health_check(app_state: web::Data<AppState>) -> impl Responder {
     let result = sqlx::query("SELECT 1").execute(&app_state.pool).await;
 
     match result {
-        Ok(_) => HttpResponse::Ok().finish(),
+        Ok(_) => HttpResponse::NoContent().finish(),
         Err(_) => HttpResponse::ServiceUnavailable()
             .json(Error::new(0, "Unable to connect to database".into())),
     }
@@ -34,7 +34,7 @@ mod tests {
         let req = test::TestRequest::get().uri("/health-check").to_request();
         let res = test::call_service(&app, req).await;
 
-        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.status(), StatusCode::NO_CONTENT);
 
         Ok(())
     }
