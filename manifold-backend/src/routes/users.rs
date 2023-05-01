@@ -1,5 +1,6 @@
-use crate::{models::users::*, AppState};
-use actix_web::{get, post, web, HttpResponse, Responder};
+use crate::{models::users::*, util::url::full_uri, AppState};
+use actix_web::{get, http::header, post, web, HttpRequest, HttpResponse, Responder};
+use uuid::Uuid;
 
 pub fn users_scope(cfg: &mut web::ServiceConfig) {
     cfg.service(get_users).service(get_user).service(add_user);
@@ -45,15 +46,41 @@ async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl
 }
 
 #[post("/users")]
-async fn add_user(app_state: web::Data<AppState>, new_user: web::Json<NewUser>) -> impl Responder {
-    let result = sqlx::query!("INSERT INTO users (username) VALUES (?)", new_user.username)
-        .execute(&app_state.pool)
-        .await;
+async fn add_user(
+    app_state: web::Data<AppState>,
+    request: HttpRequest,
+    new_user: web::Json<NewUser>,
+) -> impl Responder {
+    let user_id = Uuid::new_v4().to_string();
+    let result = sqlx::query!(
+        "INSERT INTO users (id, username) VALUES (uuid_to_bin(?, true), ?)",
+        user_id,
+        new_user.username
+    )
+    .execute(&app_state.pool)
+    .await;
 
-    match result {
-        Ok(_) => HttpResponse::Created().finish(),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+    if result.is_ok() {
+        let user: sqlx::Result<Option<User>> = sqlx::query_as!(
+                DbUser,
+                "SELECT bin_to_uuid(id, true) AS id, username FROM users WHERE id = uuid_to_bin(?, true)",
+                user_id
+            )
+            .fetch_optional(&app_state.pool)
+            .await
+            .map(|db_user| db_user.map(|db_user| db_user.into()));
+
+        if let Ok(Some(user)) = user {
+            return HttpResponse::Created()
+                .append_header((
+                    header::LOCATION,
+                    format!("{}/{}", full_uri(&request), user_id),
+                ))
+                .json(user);
+        }
     }
+
+    HttpResponse::InternalServerError().finish()
 }
 
 #[cfg(test)]
