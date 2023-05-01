@@ -1,9 +1,12 @@
 use crate::{models::users::*, util::url::full_uri, AppState};
-use actix_web::{get, http::header, post, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse, Responder};
 use uuid::Uuid;
 
 pub fn users_scope(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_users).service(get_user).service(add_user);
+    cfg.service(get_users)
+        .service(get_user)
+        .service(add_user)
+        .service(delete_user);
 }
 
 #[get("/users")]
@@ -81,6 +84,21 @@ async fn add_user(
     }
 
     HttpResponse::InternalServerError().finish()
+}
+
+#[delete("/users/{id}")]
+async fn delete_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
+    let user = sqlx::query!(
+        "DELETE FROM users WHERE id = uuid_to_bin(?, true)",
+        id.into_inner()
+    )
+    .execute(&app_state.pool)
+    .await;
+
+    match user {
+        Ok(_) => HttpResponse::NoContent().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
 }
 
 #[cfg(test)]
