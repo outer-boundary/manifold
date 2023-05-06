@@ -17,7 +17,7 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
     let users: sqlx::Result<Vec<User>> = sqlx::query_as!(
         DbUser,
-        "SELECT bin_to_uuid(id, true) AS id, username FROM users ORDER BY id"
+        "SELECT as_uuid(id) AS id, display_name, first_name, last_name FROM users ORDER BY id"
     )
     .fetch_all(&app_state.pool)
     .await
@@ -43,7 +43,7 @@ async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl
 
     let user: sqlx::Result<Option<User>> = sqlx::query_as!(
         DbUser,
-        "SELECT bin_to_uuid(id, true) AS id, username FROM users WHERE id = uuid_to_bin(?, true)",
+        "SELECT as_uuid(id) AS id, display_name, first_name, last_name FROM users WHERE id = as_bin(?)",
         user_id
     )
     .fetch_optional(&app_state.pool)
@@ -76,9 +76,11 @@ async fn add_user(
 ) -> impl Responder {
     let user_id = Uuid::new_v4().to_string();
     let result = sqlx::query!(
-        "INSERT INTO users (id, username) VALUES (uuid_to_bin(?, true), ?)",
+        "INSERT INTO users (id, display_name, first_name, last_name) VALUES (as_bin(?), ?, ?, ?)",
         user_id,
-        new_user.username
+        new_user.display_name,
+        new_user.first_name,
+        new_user.last_name
     )
     .execute(&app_state.pool)
     .await;
@@ -87,7 +89,7 @@ async fn add_user(
         Ok(_) => {
             let user: sqlx::Result<Option<User>> = sqlx::query_as!(
                 DbUser,
-                "SELECT bin_to_uuid(id, true) AS id, username FROM users WHERE id = uuid_to_bin(?, true)",
+                "SELECT as_uuid(id) AS id, display_name, first_name, last_name FROM users WHERE id = as_bin(?)",
                 user_id
             )
             .fetch_optional(&app_state.pool)
@@ -126,12 +128,9 @@ async fn add_user(
 
 #[delete("/users/{id}")]
 async fn delete_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
-    let user = sqlx::query!(
-        "DELETE FROM users WHERE id = uuid_to_bin(?, true)",
-        id.into_inner()
-    )
-    .execute(&app_state.pool)
-    .await;
+    let user = sqlx::query!("DELETE FROM users WHERE id = as_bin(?)", id.into_inner())
+        .execute(&app_state.pool)
+        .await;
 
     match user {
         Ok(_) => HttpResponse::NoContent().finish(),
@@ -184,13 +183,17 @@ mod tests {
 
         let user_id = Uuid::new_v4().to_string();
         let new_user = NewUser {
-            username: "Test user".into(),
+            display_name: "test_user".into(),
+            first_name: "Test".into(),
+            last_name: "User".into(),
         };
 
         let result: sqlx::Result<mysql::MySqlQueryResult> = sqlx::query!(
-            "INSERT INTO users (id, username) VALUES (uuid_to_bin(?, true), ?)",
+            "INSERT INTO users (id, display_name, first_name, last_name) VALUES (as_bin(?), ?, ?, ?)",
             user_id,
-            new_user.username
+            new_user.display_name,
+            new_user.first_name,
+            new_user.last_name
         )
         .execute(&app_state.pool)
         .await;
@@ -205,7 +208,9 @@ mod tests {
 
             let user: User = test::read_body_json(res).await;
             assert_eq!(user.id, user_id);
-            assert_eq!(user.username, new_user.username);
+            assert_eq!(user.display_name, new_user.display_name);
+            assert_eq!(user.first_name, new_user.first_name);
+            assert_eq!(user.last_name, new_user.last_name);
 
             return Ok(());
         }
@@ -251,7 +256,9 @@ mod tests {
         .await;
 
         let new_user = NewUser {
-            username: "Test user".into(),
+            display_name: "test_user".into(),
+            first_name: "Test".into(),
+            last_name: "User".into(),
         };
 
         let req = test::TestRequest::post()
