@@ -1,6 +1,12 @@
 use crate::{
-    models::{error::Error, users::*},
-    util::url::full_uri,
+    models::{error::ErrorResponse, users::*},
+    util::{
+        url::full_uri,
+        users::{
+            add_user as add_new_user, delete_user as delete_user_by_id, get_user as get_user_by_id,
+            get_users as get_all_users,
+        },
+    },
     AppState,
 };
 use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse, Responder};
@@ -15,23 +21,12 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 
 #[get("/users")]
 async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
-    let users: sqlx::Result<Vec<User>> = sqlx::query_as!(
-        DbUser,
-        "SELECT as_uuid(id) AS id, display_name, first_name, last_name FROM users ORDER BY id"
-    )
-    .fetch_all(&app_state.pool)
-    .await
-    .map(|db_users| {
-        db_users
-            .iter()
-            .map(|db_user| db_user.clone().into())
-            .collect()
-    });
+    let users = get_all_users(&app_state.pool).await;
 
     match users {
         Ok(users) => HttpResponse::Ok().json(users),
         Err(e) => HttpResponse::InternalServerError().json(
-            Error::new(0, "Error occurred while trying to list all users".into())
+            ErrorResponse::new(0, "Error occurred while trying to list all users".into())
                 .description(e.to_string()),
         ),
     }
@@ -41,22 +36,16 @@ async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
 async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
     let user_id = id.into_inner();
 
-    let user: sqlx::Result<Option<User>> = sqlx::query_as!(
-        DbUser,
-        "SELECT as_uuid(id) AS id, display_name, first_name, last_name FROM users WHERE id = as_bin(?)",
-        user_id
-    )
-    .fetch_optional(&app_state.pool)
-    .await
-    .map(|db_user| db_user.map(|db_user| db_user.into()));
+    let user = get_user_by_id(user_id.clone(), &app_state.pool).await;
 
     match user {
         Ok(Some(user)) => HttpResponse::Ok().json(user),
-        Ok(None) => {
-            HttpResponse::NotFound().json(Error::new(0, format!("No user with id '{}'", user_id)))
-        }
+        Ok(None) => HttpResponse::NotFound().json(ErrorResponse::new(
+            0,
+            format!("No user with id '{}'", user_id),
+        )),
         Err(e) => HttpResponse::InternalServerError().json(
-            Error::new(
+            ErrorResponse::new(
                 0,
                 format!(
                     "Error occurred while trying to get user with id '{}'",
@@ -74,27 +63,11 @@ async fn add_user(
     request: HttpRequest,
     new_user: web::Json<NewUser>,
 ) -> impl Responder {
-    let user_id = Uuid::new_v4().to_string();
-    let result = sqlx::query!(
-        "INSERT INTO users (id, display_name, first_name, last_name) VALUES (as_bin(?), ?, ?, ?)",
-        user_id,
-        new_user.display_name,
-        new_user.first_name,
-        new_user.last_name
-    )
-    .execute(&app_state.pool)
-    .await;
+    let result = add_new_user(new_user.into_inner(), &app_state.pool).await;
 
     match result {
-        Ok(_) => {
-            let user: sqlx::Result<Option<User>> = sqlx::query_as!(
-                DbUser,
-                "SELECT as_uuid(id) AS id, display_name, first_name, last_name FROM users WHERE id = as_bin(?)",
-                user_id
-            )
-            .fetch_optional(&app_state.pool)
-            .await
-            .map(|db_user| db_user.map(|db_user| db_user.into()));
+        Ok(user_id) => {
+            let user = get_user_by_id(user_id.clone(), &app_state.pool).await;
 
             match user {
                 Ok(Some(user)) => HttpResponse::Created()
@@ -103,12 +76,12 @@ async fn add_user(
                         format!("{}/{}", full_uri(&request), user_id),
                     ))
                     .json(user),
-                Ok(None) => HttpResponse::InternalServerError().json(Error::new(
+                Ok(None) => HttpResponse::InternalServerError().json(ErrorResponse::new(
                     0,
                     format!("Could not find newly created user with id '{}'", user_id),
                 )),
                 Err(e) => HttpResponse::InternalServerError().json(
-                    Error::new(
+                    ErrorResponse::new(
                         0,
                         format!(
                             "Error occurred while trying to get newly created user with id '{}'",
@@ -120,7 +93,7 @@ async fn add_user(
             }
         }
         Err(e) => HttpResponse::InternalServerError().json(
-            Error::new(0, "Error occurred while trying to create new user".into())
+            ErrorResponse::new(0, "Error occurred while trying to create new user".into())
                 .description(e.to_string()),
         ),
     }
@@ -128,14 +101,15 @@ async fn add_user(
 
 #[delete("/users/{id}")]
 async fn delete_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
-    let user = sqlx::query!("DELETE FROM users WHERE id = as_bin(?)", id.into_inner())
-        .execute(&app_state.pool)
-        .await;
+    let user_id = id.into_inner();
+    let result = delete_user_by_id(user_id.clone(), &app_state.pool).await;
 
-    match user {
+    match result {
         Ok(_) => HttpResponse::NoContent().finish(),
-        Err(e) => HttpResponse::InternalServerError()
-            .json(Error::new(0, "Unable to create new user".into()).description(e.to_string())),
+        Err(e) => HttpResponse::InternalServerError().json(
+            ErrorResponse::new(0, format!("Unable to delete user with id '{}'", user_id))
+                .description(e.to_string()),
+        ),
     }
 }
 

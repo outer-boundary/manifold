@@ -1,4 +1,4 @@
-use crate::{models::error::Error, AppState};
+use crate::{models::error::ErrorResponse, AppState};
 use actix_web::{get, web, HttpResponse, Responder};
 
 #[get("/health-check")]
@@ -7,8 +7,10 @@ async fn health_check(app_state: web::Data<AppState>) -> impl Responder {
 
     match result {
         Ok(_) => HttpResponse::NoContent().finish(),
-        Err(_) => HttpResponse::ServiceUnavailable()
-            .json(Error::new(0, "Unable to connect to database".into())),
+        Err(_) => HttpResponse::ServiceUnavailable().json(ErrorResponse::new(
+            0,
+            "Unable to connect to database".into(),
+        )),
     }
 }
 

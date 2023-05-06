@@ -4,7 +4,7 @@ type ErrorCode = u16;
 
 // Model representing a user.
 #[derive(Serialize)]
-pub struct Error {
+pub struct ErrorResponse {
     pub code: ErrorCode,
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -13,9 +13,9 @@ pub struct Error {
     pub errors: Option<Vec<FieldError>>,
 }
 
-impl Error {
+impl ErrorResponse {
     pub fn new(code: ErrorCode, message: String) -> Self {
-        Error {
+        ErrorResponse {
             code,
             message,
             description: None,
