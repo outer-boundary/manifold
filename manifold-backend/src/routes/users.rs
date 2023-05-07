@@ -2,26 +2,22 @@ use crate::{
     models::{error::ErrorResponse, users::*},
     util::{
         url::full_uri,
-        users::{
-            add_user as add_new_user, delete_user as delete_user_by_id, get_user as get_user_by_id,
-            get_users as get_all_users,
-        },
+        users::{add_user, delete_user, get_user, get_users},
     },
     AppState,
 };
 use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse, Responder};
-use uuid::Uuid;
 
 pub fn users_scope(cfg: &mut web::ServiceConfig) {
-    cfg.service(get_users)
-        .service(get_user)
-        .service(add_user)
-        .service(delete_user);
+    cfg.service(get_users_route)
+        .service(get_user_route)
+        .service(add_user_route)
+        .service(delete_user_route);
 }
 
 #[get("/users")]
-async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
-    let users = get_all_users(&app_state.pool).await;
+async fn get_users_route(app_state: web::Data<AppState>) -> impl Responder {
+    let users = get_users(&app_state.pool).await;
 
     match users {
         Ok(users) => HttpResponse::Ok().json(users),
@@ -33,10 +29,10 @@ async fn get_users(app_state: web::Data<AppState>) -> impl Responder {
 }
 
 #[get("/users/{id}")]
-async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
+async fn get_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
     let user_id = id.into_inner();
 
-    let user = get_user_by_id(user_id.clone(), &app_state.pool).await;
+    let user = get_user(user_id.clone(), &app_state.pool).await;
 
     match user {
         Ok(Some(user)) => HttpResponse::Ok().json(user),
@@ -58,16 +54,16 @@ async fn get_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl
 }
 
 #[post("/users")]
-async fn add_user(
+async fn add_user_route(
     app_state: web::Data<AppState>,
     request: HttpRequest,
     new_user: web::Json<NewUser>,
 ) -> impl Responder {
-    let result = add_new_user(new_user.into_inner(), &app_state.pool).await;
+    let result = add_user(new_user.into_inner(), &app_state.pool).await;
 
     match result {
         Ok(user_id) => {
-            let user = get_user_by_id(user_id.clone(), &app_state.pool).await;
+            let user = get_user(user_id.clone(), &app_state.pool).await;
 
             match user {
                 Ok(Some(user)) => HttpResponse::Created()
@@ -100,9 +96,12 @@ async fn add_user(
 }
 
 #[delete("/users/{id}")]
-async fn delete_user(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
+async fn delete_user_route(
+    app_state: web::Data<AppState>,
+    id: web::Path<String>,
+) -> impl Responder {
     let user_id = id.into_inner();
-    let result = delete_user_by_id(user_id.clone(), &app_state.pool).await;
+    let result = delete_user(user_id.clone(), &app_state.pool).await;
 
     match result {
         Ok(_) => HttpResponse::NoContent().finish(),
@@ -130,7 +129,7 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(get_users),
+                .service(get_users_route),
         )
         .await;
 
@@ -151,7 +150,7 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(get_user),
+                .service(get_user_route),
         )
         .await;
 
@@ -201,7 +200,7 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(get_user),
+                .service(get_user_route),
         )
         .await;
 
@@ -225,7 +224,7 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(add_user),
+                .service(add_user_route),
         )
         .await;
 
