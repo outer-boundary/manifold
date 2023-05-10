@@ -1,7 +1,11 @@
 [package]
-name = "manifold-backend"
+name = "backend"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+path = "src/main.rs"
+name = "backend"
 
 [dependencies]
 actix-web = "4"

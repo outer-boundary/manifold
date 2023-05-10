@@ -1,5 +1,5 @@
 {
-	"name": "manifold-client",
+	"name": "client",
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
