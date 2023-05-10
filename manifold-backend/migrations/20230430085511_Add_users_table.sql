@@ -17,9 +17,10 @@ END;
 CREATE TABLE users (
   id binary(16) PRIMARY KEY NOT NULL DEFAULT (uuid_to_bin(uuid(), true)),
 
+  username varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
   display_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  first_name varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  last_name varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  first_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  last_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
 
   created_at datetime NOT NULL DEFAULT current_timestamp,
   updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp
@@ -40,8 +41,8 @@ CREATE TABLE li_email_password (
   id binary(16) NOT NULL,
   FOREIGN KEY (id) REFERENCES login_identity(id),
 
-  email varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  password varchar(255) CHARACTER SET utf8mb4 NOT NULL,
+  email varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
+  password_hash varchar(255) CHARACTER SET utf8mb4 NOT NULL,
   salt varchar(255) CHARACTER SET utf8mb4 NOT NULL,
 
   created_at datetime NOT NULL DEFAULT current_timestamp,
@@ -53,7 +54,7 @@ CREATE TABLE li_phone_number(
   id binary(16) NOT NULL,
   FOREIGN KEY (id) REFERENCES login_identity(id),
 
-  phone_number varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  phone_number varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
 
   created_at datetime NOT NULL DEFAULT current_timestamp,
   updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp

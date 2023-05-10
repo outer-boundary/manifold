@@ -7,7 +7,7 @@ use crate::Error;
 pub async fn get_users(db_pool: &Pool<MySql>) -> Result<Vec<User>, Error> {
     let users = sqlx::query_as!(
         DbUser,
-        "SELECT as_uuid(id) AS id, display_name, first_name, last_name FROM users ORDER BY id"
+        "SELECT as_uuid(id) AS id, username, display_name, first_name, last_name, created_at, updated_at FROM users ORDER BY id"
     )
     .fetch_all(db_pool)
     .await
@@ -24,7 +24,7 @@ pub async fn get_users(db_pool: &Pool<MySql>) -> Result<Vec<User>, Error> {
 pub async fn get_user(id: String, db_pool: &Pool<MySql>) -> Result<Option<User>, Error> {
     let user = sqlx::query_as!(
         DbUser,
-        "SELECT as_uuid(id) AS id, display_name, first_name, last_name FROM users WHERE id = as_bin(?)",
+        "SELECT as_uuid(id) AS id, username, display_name, first_name, last_name, created_at, updated_at FROM users WHERE id = as_bin(?)",
         id
     )
     .fetch_optional(db_pool)
@@ -37,11 +37,10 @@ pub async fn get_user(id: String, db_pool: &Pool<MySql>) -> Result<Option<User>,
 pub async fn add_user(new_user: NewUser, db_pool: &Pool<MySql>) -> Result<String, Error> {
     let user_id = Uuid::new_v4().to_string();
     sqlx::query!(
-        "INSERT INTO users (id, display_name, first_name, last_name) VALUES (as_bin(?), ?, ?, ?)",
+        "INSERT INTO users (id, username, display_name) VALUES (as_bin(?), ?, ?)",
         user_id.clone(),
-        new_user.display_name,
-        new_user.first_name,
-        new_user.last_name
+        new_user.username,
+        new_user.username
     )
     .execute(db_pool)
     .await?;

@@ -117,7 +117,6 @@ mod tests {
     use super::*;
     use crate::{util::tests::TestPool, Error};
     use actix_web::{http::StatusCode, test, web::Data, App};
-    use sqlx::mysql;
     use uuid::Uuid;
 
     #[actix_web::test]
@@ -154,41 +153,24 @@ mod tests {
         )
         .await;
 
-        let user_id = Uuid::new_v4().to_string();
         let new_user = NewUser {
-            display_name: "test_user".into(),
-            first_name: "Test".into(),
-            last_name: "User".into(),
+            username: "test_user".into(),
         };
 
-        let result: sqlx::Result<mysql::MySqlQueryResult> = sqlx::query!(
-            "INSERT INTO users (id, display_name, first_name, last_name) VALUES (as_bin(?), ?, ?, ?)",
-            user_id,
-            new_user.display_name,
-            new_user.first_name,
-            new_user.last_name
-        )
-        .execute(&app_state.pool)
-        .await;
+        let user_id = add_user(new_user.clone(), &app_state.pool).await?;
 
-        if result.is_ok() {
-            let req = test::TestRequest::get()
-                .uri(&format!("/users/{}", user_id))
-                .to_request();
-            let res = test::call_service(&app, req).await;
+        let req = test::TestRequest::get()
+            .uri(&format!("/users/{}", user_id))
+            .to_request();
+        let res = test::call_service(&app, req).await;
 
-            assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.status(), StatusCode::OK);
 
-            let user: User = test::read_body_json(res).await;
-            assert_eq!(user.id, user_id);
-            assert_eq!(user.display_name, new_user.display_name);
-            assert_eq!(user.first_name, new_user.first_name);
-            assert_eq!(user.last_name, new_user.last_name);
+        let user: User = test::read_body_json(res).await;
+        assert_eq!(user.id, user_id);
+        assert_eq!(user.username, new_user.username);
 
-            return Ok(());
-        }
-
-        Err("Failed to insert value into DB".into())
+        Ok(())
     }
 
     #[actix_web::test]
@@ -229,9 +211,7 @@ mod tests {
         .await;
 
         let new_user = NewUser {
-            display_name: "test_user".into(),
-            first_name: "Test".into(),
-            last_name: "User".into(),
+            username: "test_user".into(),
         };
 
         let req = test::TestRequest::post()
