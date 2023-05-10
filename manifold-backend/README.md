@@ -18,10 +18,18 @@ This will enable you to use pnpm as your node package manager.
 
 ### Local MySQL Database
 
-To set up a local MySQL database to develop with, go to the following link and follow the installation instructions:
-https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/
+To set up a local MySQL database to develop with, follow the installation instructions listed [here](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/).
 
 Ensure that you select the `Developer Default` option when selecting the installation presets.
+
+### Argonautica
+
+`argonautica` is the cryptography package we use for password hashing. To be able to use the crate, a C compiler is needed
+to compile the C implementation of Argon2. Follow the instructions
+[here](https://docs.rs/argonautica/latest/argonautica/#installation) to set up your environment to be able to use
+`argonautica`.
+
+Ensure that you restart your system after installation to ensure that the `argonautica` crate can find the installed C compiler.
 
 ---
 
