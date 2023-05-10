@@ -73,10 +73,10 @@ COPY --from=builder /etc/group /etc/group
 
 # Copy built backend from builder image
 WORKDIR /app
-COPY --from=builder /app/target/release/manifold-backend manifold-backend
+COPY --from=builder /app/target/release/backend backend
 COPY --from=builder /app/${ENV_FILE} .env
 
 USER web:web
 
 # Start the backend
-CMD ["./manifold-backend"]
+CMD ["./backend"]
