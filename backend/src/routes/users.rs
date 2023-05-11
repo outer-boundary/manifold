@@ -17,14 +17,22 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 
 #[get("/users")]
 async fn get_users_route(app_state: web::Data<AppState>) -> HttpResponse {
+    tracing::debug!("Requesting all users...");
+
     let users = get_users(&app_state.pool).await;
 
     match users {
-        Ok(users) => HttpResponse::Ok().json(users),
-        Err(e) => HttpResponse::InternalServerError().json(
-            ErrorResponse::new(0, "Error occurred while trying to list all users".into())
-                .description(e.to_string()),
-        ),
+        Ok(users) => {
+            tracing::info!("Returning list of all users.");
+            HttpResponse::Ok().json(users)
+        }
+        Err(err) => {
+            tracing::error!("Failed while trying to get a list of all users. {}", err);
+            HttpResponse::InternalServerError().json(
+                ErrorResponse::new(0, "Error occurred while trying to list all users")
+                    .description(err),
+            )
+        }
     }
 }
 
@@ -32,24 +40,39 @@ async fn get_users_route(app_state: web::Data<AppState>) -> HttpResponse {
 async fn get_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let user_id = id.into_inner();
 
+    tracing::debug!("Requesting user with id '{}'...", user_id.clone());
+
     let user = get_user(user_id.clone(), &app_state.pool).await;
 
     match user {
-        Ok(Some(user)) => HttpResponse::Ok().json(user),
-        Ok(None) => HttpResponse::NotFound().json(ErrorResponse::new(
-            0,
-            format!("No user with id '{}'", user_id),
-        )),
-        Err(e) => HttpResponse::InternalServerError().json(
-            ErrorResponse::new(
+        Ok(Some(user)) => {
+            tracing::info!("Found user with id '{}'.", user_id.clone());
+            HttpResponse::Ok().json(user)
+        }
+        Ok(None) => {
+            tracing::warn!("No user found with id '{}'.", user_id.clone());
+            HttpResponse::NotFound().json(ErrorResponse::new(
                 0,
-                format!(
-                    "Error occurred while trying to get user with id '{}'",
-                    user_id
-                ),
+                format!("No user with id '{}'", user_id),
+            ))
+        }
+        Err(err) => {
+            tracing::error!(
+                "Failed while trying to find user with id '{}'. {}",
+                user_id.clone(),
+                err
+            );
+            HttpResponse::InternalServerError().json(
+                ErrorResponse::new(
+                    0,
+                    format!(
+                        "Error occurred while trying to get user with id '{}'",
+                        user_id
+                    ),
+                )
+                .description(err),
             )
-            .description(e.to_string()),
-        ),
+        }
     }
 }
 
@@ -59,6 +82,8 @@ async fn add_user_route(
     request: HttpRequest,
     new_user: web::Json<NewUser>,
 ) -> HttpResponse {
+    tracing::debug!("Creating new user...");
+
     let result = add_user(new_user.into_inner(), &app_state.pool).await;
 
     match result {
@@ -66,46 +91,78 @@ async fn add_user_route(
             let user = get_user(user_id.clone(), &app_state.pool).await;
 
             match user {
-                Ok(Some(user)) => HttpResponse::Created()
-                    .append_header((
-                        header::LOCATION,
-                        format!("{}/{}", full_uri(&request), user_id),
-                    ))
-                    .json(user),
-                Ok(None) => HttpResponse::InternalServerError().json(ErrorResponse::new(
-                    0,
-                    format!("Could not find newly created user with id '{}'", user_id),
-                )),
-                Err(e) => HttpResponse::InternalServerError().json(
-                    ErrorResponse::new(
+                Ok(Some(user)) => {
+                    tracing::info!("Created new user with id '{}'.", user_id.clone());
+                    HttpResponse::Created()
+                        .append_header((
+                            header::LOCATION,
+                            format!("{}/{}", full_uri(&request), user_id),
+                        ))
+                        .json(user)
+                }
+                Ok(None) => {
+                    tracing::error!(
+                        "Could not find newly created user with id '{}'.",
+                        user_id.clone()
+                    );
+                    HttpResponse::InternalServerError().json(ErrorResponse::new(
                         0,
-                        format!(
+                        format!("Could not find newly created user with id '{}'", user_id),
+                    ))
+                }
+                Err(err) => {
+                    tracing::error!(
+                        "Error occurred while trying to get newly created user with id '{}'. {}",
+                        user_id.clone(),
+                        err
+                    );
+                    HttpResponse::InternalServerError().json(
+                        ErrorResponse::new(
+                            0,
+                            format!(
                             "Error occurred while trying to get newly created user with id '{}'",
                             user_id
                         ),
+                        )
+                        .description(err),
                     )
-                    .description(e.to_string()),
-                ),
+                }
             }
         }
-        Err(e) => HttpResponse::InternalServerError().json(
-            ErrorResponse::new(0, "Error occurred while trying to create new user".into())
-                .description(e.to_string()),
-        ),
+        Err(err) => {
+            tracing::error!("Failed while trying to create new user. {}", err);
+            HttpResponse::InternalServerError().json(
+                ErrorResponse::new(0, "Error occurred while trying to create new user")
+                    .description(err),
+            )
+        }
     }
 }
 
 #[delete("/users/{id}")]
 async fn delete_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let user_id = id.into_inner();
+
+    tracing::debug!("Deleting user with id '{}'...", user_id.clone());
+
     let result = delete_user(user_id.clone(), &app_state.pool).await;
 
     match result {
-        Ok(_) => HttpResponse::NoContent().finish(),
-        Err(e) => HttpResponse::InternalServerError().json(
-            ErrorResponse::new(0, format!("Unable to delete user with id '{}'", user_id))
-                .description(e.to_string()),
-        ),
+        Ok(_) => {
+            tracing::info!("Deleted user with id '{}'.", user_id.clone());
+            HttpResponse::NoContent().finish()
+        }
+        Err(err) => {
+            tracing::error!(
+                "Failed while trying to delete user with id '{}'. {}",
+                user_id.clone(),
+                err
+            );
+            HttpResponse::InternalServerError().json(
+                ErrorResponse::new(0, format!("Unable to delete user with id '{}'", user_id))
+                    .description(err),
+            )
+        }
     }
 }
 

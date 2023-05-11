@@ -3,15 +3,21 @@ use actix_web::{get, web, HttpResponse};
 use crate::{common::AppState, models::error::ErrorResponse};
 
 #[get("/health-check")]
-async fn health_check(app_state: web::Data<AppState>) -> HttpResponse {
+async fn health_check_route(app_state: web::Data<AppState>) -> HttpResponse {
+    tracing::debug!("Running health check route...");
+
     let result = sqlx::query("SELECT 1").execute(&app_state.pool).await;
 
     match result {
-        Ok(_) => HttpResponse::NoContent().finish(),
-        Err(_) => HttpResponse::ServiceUnavailable().json(ErrorResponse::new(
-            0,
-            "Unable to connect to database".into(),
-        )),
+        Ok(_) => {
+            tracing::info!("Server is healthy.");
+            HttpResponse::NoContent().finish()
+        }
+        Err(err) => {
+            tracing::error!("Server failed health check. {}", err);
+            HttpResponse::ServiceUnavailable()
+                .json(ErrorResponse::new(0, "Unable to connect to database"))
+        }
     }
 }
 
@@ -30,7 +36,7 @@ mod tests {
         let app = test::init_service(
             App::new()
                 .app_data(Data::new(app_state.clone()))
-                .service(health_check),
+                .service(health_check_route),
         )
         .await;
 

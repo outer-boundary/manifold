@@ -1,12 +1,20 @@
 use super::configuration::{Configuration, DatabaseConfiguration, ServerConfiguration};
 use crate::common::Error;
-use once_cell::sync::Lazy;
 use std::{env, fmt::Display};
 
 #[derive(Eq, PartialEq)]
 pub enum Environment {
     Production,
     Development,
+}
+
+impl Environment {
+    pub fn is_dev(&self) -> bool {
+        match self {
+            Self::Development => true,
+            Self::Production => false,
+        }
+    }
 }
 
 impl TryFrom<&str> for Environment {
@@ -45,11 +53,7 @@ pub async fn init() -> Result<Configuration, Error> {
         Environment::try_from(env::var("ENVIRONMENT").unwrap_or_else(|_| "development".into()))?;
 
     match environment {
-        Environment::Development => {
-            env::set_var("RUST_LOG", "debug");
-            static INIT_LOGGER: Lazy<()> = Lazy::new(env_logger::init);
-            let _ = &*INIT_LOGGER;
-        }
+        Environment::Development => (),
         Environment::Production => (),
     }
 

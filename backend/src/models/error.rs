@@ -14,21 +14,27 @@ pub struct ErrorResponse {
 }
 
 impl ErrorResponse {
-    pub fn new(code: ErrorCode, message: String) -> Self {
+    pub fn new<T>(code: ErrorCode, message: T) -> Self
+    where
+        T: ToString,
+    {
         ErrorResponse {
             code,
-            message,
+            message: message.to_string(),
             description: None,
             errors: None,
         }
     }
 
-    pub fn description(&mut self, content: String) -> &Self {
-        self.description = Some(content);
+    pub fn description<T>(&mut self, content: T) -> &Self
+    where
+        T: ToString,
+    {
+        self.description = Some(content.to_string());
         self
     }
 
-    pub fn field_errors(&mut self, errors: Vec<FieldError>) -> &Self {
+    pub fn field_errors<T>(&mut self, errors: Vec<FieldError>) -> &Self {
         self.errors = Some(errors);
         self
     }
@@ -42,11 +48,14 @@ pub struct FieldError {
 }
 
 impl FieldError {
-    pub fn new(code: ErrorCode, field_name: String, message: String) -> Self {
+    pub fn new<T>(code: ErrorCode, field_name: String, message: T) -> Self
+    where
+        T: ToString,
+    {
         FieldError {
             code,
             field: field_name,
-            message,
+            message: message.to_string(),
         }
     }
 }
