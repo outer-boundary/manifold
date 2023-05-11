@@ -1,6 +1,6 @@
 use tracing_subscriber::layer::SubscriberExt;
 
-use crate::util::environment::Environment;
+use crate::util::configuration::Environment;
 
 pub fn get_subscriber(env: Environment) -> impl tracing::Subscriber + Send + Sync {
     let env_filter = if env.is_dev() {

@@ -1,0 +1,6 @@
+server:
+  scheme: http
+  host: localhost
+  base_url: "http://localhost"
+
+environment: "development"

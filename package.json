@@ -1,6 +1,6 @@
 {
   "name": "manifold",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "private": "true",
   "scripts": {
@@ -13,7 +13,7 @@
     "migrations": "cd backend && sqlx migrate",
     "migrations:add": "pnpm run migrations add",
     "migrations:run": "pnpm run migrations run",
-    "build:backend": "cd backend && cross-env ENVIRONMENT=production cargo build --release",
+    "build:backend": "cd backend && cross-env MANIFOLD__ENVIRONMENT=production cargo build --release",
     "build:client": "cd client && pnpm run build",
     "postinstall": "run-p install:*",
     "install:backend": "cd backend && cargo install sqlx-cli",

@@ -1,36 +1,25 @@
 extern crate argonautica;
 
-use actix_web::web::scope;
-use actix_web::{web::Data, App, HttpServer};
-use backend::common::{AppState, Error};
-use backend::routes::{health_check::health_check_route, users::users_scope};
-use backend::util::database::connect_db;
-use backend::util::environment;
-use backend::util::telemetry;
+use backend::{
+    common::Error,
+    startup::Application,
+    util::{configuration::get_config, telemetry},
+};
 
 #[actix_web::main]
 async fn main() -> Result<(), Error> {
-    let config = environment::init().await?;
+    dotenvy::dotenv().ok();
 
-    let subscriber = telemetry::get_subscriber(config.env);
+    let config = get_config().expect("Failed to read settings");
+
+    let subscriber = telemetry::get_subscriber(config.environment.clone());
     telemetry::init_subscriber(subscriber);
 
-    let app_state = AppState {
-        pool: connect_db(&config.db.url, None).await?,
-    };
+    let application = Application::build(config.clone()).await?;
 
-    tracing::info!(target: "backend", "Listening on http://{}:{}", config.server.url.0, config.server.url.1);
+    tracing::info!(target: "backend", "Listening on {}://{}:{}", config.server.scheme, config.server.port, config.server.host);
 
-    HttpServer::new(move || {
-        App::new().app_data(Data::new(app_state.clone())).service(
-            scope("/api")
-                .service(health_check_route)
-                .configure(users_scope),
-        )
-    })
-    .bind(config.server.url)?
-    .run()
-    .await?;
+    application.run_until_stopped().await?;
 
     Ok(())
 }
