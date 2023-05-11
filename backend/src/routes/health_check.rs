@@ -1,8 +1,9 @@
-use crate::{models::error::ErrorResponse, AppState};
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{get, web, HttpResponse};
+
+use crate::{common::AppState, models::error::ErrorResponse};
 
 #[get("/health-check")]
-async fn health_check(app_state: web::Data<AppState>) -> impl Responder {
+async fn health_check(app_state: web::Data<AppState>) -> HttpResponse {
     let result = sqlx::query("SELECT 1").execute(&app_state.pool).await;
 
     match result {
@@ -17,7 +18,7 @@ async fn health_check(app_state: web::Data<AppState>) -> impl Responder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{util::tests::TestPool, Error};
+    use crate::{common::Error, util::tests::TestPool};
     use actix_web::{http::StatusCode, test, web::Data, App};
 
     #[actix_web::test]

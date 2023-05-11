@@ -1,12 +1,12 @@
+use crate::common::AppState;
 use crate::{
     models::{error::ErrorResponse, users::*},
     util::{
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},
     },
-    AppState,
 };
-use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse};
 
 pub fn users_scope(cfg: &mut web::ServiceConfig) {
     cfg.service(get_users_route)
@@ -16,7 +16,7 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 }
 
 #[get("/users")]
-async fn get_users_route(app_state: web::Data<AppState>) -> impl Responder {
+async fn get_users_route(app_state: web::Data<AppState>) -> HttpResponse {
     let users = get_users(&app_state.pool).await;
 
     match users {
@@ -29,7 +29,7 @@ async fn get_users_route(app_state: web::Data<AppState>) -> impl Responder {
 }
 
 #[get("/users/{id}")]
-async fn get_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -> impl Responder {
+async fn get_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let user_id = id.into_inner();
 
     let user = get_user(user_id.clone(), &app_state.pool).await;
@@ -58,7 +58,7 @@ async fn add_user_route(
     app_state: web::Data<AppState>,
     request: HttpRequest,
     new_user: web::Json<NewUser>,
-) -> impl Responder {
+) -> HttpResponse {
     let result = add_user(new_user.into_inner(), &app_state.pool).await;
 
     match result {
@@ -96,10 +96,7 @@ async fn add_user_route(
 }
 
 #[delete("/users/{id}")]
-async fn delete_user_route(
-    app_state: web::Data<AppState>,
-    id: web::Path<String>,
-) -> impl Responder {
+async fn delete_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let user_id = id.into_inner();
     let result = delete_user(user_id.clone(), &app_state.pool).await;
 
@@ -115,7 +112,8 @@ async fn delete_user_route(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{util::tests::TestPool, Error};
+    use crate::common::Error;
+    use crate::util::tests::TestPool;
     use actix_web::{http::StatusCode, test, web::Data, App};
     use uuid::Uuid;
 

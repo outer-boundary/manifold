@@ -1,10 +1,10 @@
 use crate::models::users::*;
-use sqlx::{MySql, Pool};
+use sqlx::MySqlPool;
 use uuid::Uuid;
 
-use crate::Error;
+use crate::common::Error;
 
-pub async fn get_users(db_pool: &Pool<MySql>) -> Result<Vec<User>, Error> {
+pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>, Error> {
     let users = sqlx::query_as!(
         DbUser,
         "SELECT as_uuid(id) AS id, username, display_name, first_name, last_name, created_at, updated_at FROM users ORDER BY id"
@@ -21,7 +21,7 @@ pub async fn get_users(db_pool: &Pool<MySql>) -> Result<Vec<User>, Error> {
     Ok(users)
 }
 
-pub async fn get_user(id: String, db_pool: &Pool<MySql>) -> Result<Option<User>, Error> {
+pub async fn get_user(id: String, db_pool: &MySqlPool) -> Result<Option<User>, Error> {
     let user = sqlx::query_as!(
         DbUser,
         "SELECT as_uuid(id) AS id, username, display_name, first_name, last_name, created_at, updated_at FROM users WHERE id = as_bin(?)",
@@ -34,7 +34,7 @@ pub async fn get_user(id: String, db_pool: &Pool<MySql>) -> Result<Option<User>,
     Ok(user)
 }
 
-pub async fn add_user(new_user: NewUser, db_pool: &Pool<MySql>) -> Result<String, Error> {
+pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> Result<String, Error> {
     let user_id = Uuid::new_v4().to_string();
     sqlx::query!(
         "INSERT INTO users (id, username, display_name) VALUES (as_bin(?), ?, ?)",
@@ -48,7 +48,7 @@ pub async fn add_user(new_user: NewUser, db_pool: &Pool<MySql>) -> Result<String
     Ok(user_id)
 }
 
-pub async fn delete_user(id: String, db_pool: &Pool<MySql>) -> Result<(), Error> {
+pub async fn delete_user(id: String, db_pool: &MySqlPool) -> Result<(), Error> {
     sqlx::query!("DELETE FROM users WHERE id = as_bin(?)", id)
         .execute(db_pool)
         .await?;

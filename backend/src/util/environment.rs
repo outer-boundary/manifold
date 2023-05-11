@@ -1,5 +1,5 @@
 use super::configuration::{Configuration, DatabaseConfiguration, ServerConfiguration};
-use crate::Error;
+use crate::common::Error;
 use once_cell::sync::Lazy;
 use std::{env, fmt::Display};
 
@@ -39,7 +39,7 @@ impl Display for Environment {
 }
 
 pub async fn init() -> Result<Configuration, Error> {
-    dotenv::dotenv()?;
+    dotenvy::dotenv()?;
 
     let environment =
         Environment::try_from(env::var("ENVIRONMENT").unwrap_or_else(|_| "development".into()))?;

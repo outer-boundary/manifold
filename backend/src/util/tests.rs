@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::common::Error;
 use sqlx::{mysql::MySqlPoolOptions, Executor, MySqlPool};
 
 pub struct TestPool {
@@ -7,7 +7,7 @@ pub struct TestPool {
 
 impl TestPool {
     pub async fn connect() -> Result<Self, Error> {
-        dotenv::dotenv()?;
+        dotenvy::dotenv()?;
 
         let pool = MySqlPoolOptions::new()
             .max_connections(1)

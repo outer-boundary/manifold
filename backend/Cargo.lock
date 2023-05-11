@@ -328,7 +328,7 @@ dependencies = [
  "actix-web",
  "argonautica",
  "chrono",
- "dotenv",
+ "dotenvy",
  "env_logger 0.10.0",
  "futures 0.3.28",
  "jsonwebtoken",
@@ -722,12 +722,6 @@ dependencies = [
  "block-buffer",
  "crypto-common",
 ]
-
-[[package]]
-name = "dotenv"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
 
 [[package]]
 name = "dotenvy"
@@ -2216,7 +2210,6 @@ dependencies = [
  "thiserror",
  "tokio-stream",
  "url",
- "uuid",
  "webpki-roots",
 ]
 

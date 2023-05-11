@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::common::Error;
 use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
 
 pub struct DatabaseConnectionConfig {

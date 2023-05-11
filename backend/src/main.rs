@@ -1,23 +1,11 @@
 extern crate argonautica;
 
-mod models;
-mod routes;
-mod util;
-
-use crate::util::database::connect_db;
 use actix_web::web::scope;
 use actix_web::{web::Data, App, HttpServer};
-use routes::health_check::health_check;
-use routes::users::users_scope;
-use sqlx::MySqlPool;
-use util::environment;
-
-type Error = Box<dyn std::error::Error>;
-
-#[derive(Clone)]
-struct AppState {
-    pool: MySqlPool,
-}
+use backend::common::{AppState, Error};
+use backend::routes::{health_check::health_check, users::users_scope};
+use backend::util::database::connect_db;
+use backend::util::environment;
 
 #[actix_web::main]
 async fn main() -> Result<(), Error> {
