@@ -2,6 +2,7 @@ use actix_web::{get, web, HttpResponse};
 
 use crate::{common::AppState, models::error::ErrorResponse};
 
+#[tracing::instrument]
 #[get("/health-check")]
 async fn health_check_route(app_state: web::Data<AppState>) -> HttpResponse {
     tracing::debug!("Running health check route...");

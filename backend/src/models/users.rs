@@ -48,7 +48,7 @@ impl From<DbUser> for User {
 }
 
 // Model representing the data sent from the frontend to the server to create a new user.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NewUser {
     pub username: String,
 }

@@ -15,6 +15,7 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
         .service(delete_user_route);
 }
 
+#[tracing::instrument]
 #[get("/users")]
 async fn get_users_route(app_state: web::Data<AppState>) -> HttpResponse {
     tracing::debug!("Requesting all users...");
@@ -36,6 +37,7 @@ async fn get_users_route(app_state: web::Data<AppState>) -> HttpResponse {
     }
 }
 
+#[tracing::instrument]
 #[get("/users/{id}")]
 async fn get_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let user_id = id.into_inner();
@@ -76,6 +78,7 @@ async fn get_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -
     }
 }
 
+#[tracing::instrument]
 #[post("/users")]
 async fn add_user_route(
     app_state: web::Data<AppState>,
@@ -139,6 +142,7 @@ async fn add_user_route(
     }
 }
 
+#[tracing::instrument]
 #[delete("/users/{id}")]
 async fn delete_user_route(app_state: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let user_id = id.into_inner();
