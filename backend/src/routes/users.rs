@@ -149,12 +149,42 @@ async fn delete_user_route(app_state: web::Data<AppState>, id: web::Path<String>
 
     tracing::debug!("Deleting user with id '{}'...", user_id.clone());
 
-    let result = delete_user(user_id.clone(), &app_state.pool).await;
+    let user = get_user(user_id.clone(), &app_state.pool).await;
 
-    match result {
-        Ok(_) => {
-            tracing::info!("Deleted user with id '{}'.", user_id.clone());
-            HttpResponse::NoContent().finish()
+    match user {
+        Ok(Some(_)) => {
+            let result = delete_user(user_id.clone(), &app_state.pool).await;
+
+            match result {
+                Ok(_) => {
+                    tracing::info!("Deleted user with id '{}'.", user_id.clone());
+                    HttpResponse::NoContent().finish()
+                }
+                Err(err) => {
+                    tracing::error!(
+                        "Failed while trying to delete user with id '{}'. {}",
+                        user_id.clone(),
+                        err
+                    );
+                    HttpResponse::InternalServerError().json(
+                        ErrorResponse::new(
+                            0,
+                            format!("Unable to delete user with id '{}'", user_id),
+                        )
+                        .description(err),
+                    )
+                }
+            }
+        }
+        Ok(None) => {
+            tracing::warn!(
+                "Trying to delete non-existent user with id '{}'.",
+                user_id.clone()
+            );
+            HttpResponse::NotFound().json(ErrorResponse::new(
+                0,
+                format!("Trying to delete non-existent user with id '{}'", user_id),
+            ))
         }
         Err(err) => {
             tracing::error!(
@@ -280,6 +310,59 @@ mod tests {
         let res = test::call_service(&app, req).await;
 
         assert_eq!(res.status(), StatusCode::CREATED);
+
+        Ok(())
+    }
+
+    #[actix_web::test]
+    async fn test_delete_user() -> Result<(), Error> {
+        let pool = TestPool::connect().await?;
+
+        let app_state = AppState { pool: pool.get() };
+
+        let app = test::init_service(
+            App::new()
+                .app_data(Data::new(app_state.clone()))
+                .service(delete_user_route),
+        )
+        .await;
+
+        let new_user = NewUser {
+            username: "test_user".into(),
+        };
+
+        let user_id = add_user(new_user.clone(), &app_state.pool).await?;
+
+        let req = test::TestRequest::delete()
+            .uri(&format!("/users/{}", user_id))
+            .to_request();
+        let res = test::call_service(&app, req).await;
+
+        assert_eq!(res.status(), StatusCode::NO_CONTENT);
+
+        Ok(())
+    }
+
+    #[actix_web::test]
+    async fn test_delete_user_not_found() -> Result<(), Error> {
+        let pool = TestPool::connect().await?;
+
+        let app_state = AppState { pool: pool.get() };
+
+        let app = test::init_service(
+            App::new()
+                .app_data(Data::new(app_state.clone()))
+                .service(delete_user_route),
+        )
+        .await;
+
+        let non_existent_id = Uuid::new_v4().to_string();
+        let req = test::TestRequest::delete()
+            .uri(&format!("/users/{}", non_existent_id))
+            .to_request();
+        let res = test::call_service(&app, req).await;
+
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
 
         Ok(())
     }

@@ -9,7 +9,7 @@
     "dev:backend": "cd backend && cargo run",
     "dev:client:web": "cd client && pnpm run dev:web",
     "dev:client:desktop": "cd client && pnpm run dev:desktop",
-    "test:backend": "cd backend && cargo test",
+    "test:backend": "cd backend && cargo test -- --test-threads=1",
     "migrations": "cd backend && sqlx migrate",
     "migrations:new": "pnpm run migrations add -r",
     "migrations:apply": "pnpm run migrations run",
