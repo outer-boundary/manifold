@@ -15,12 +15,13 @@ actix-web = "4"
 argonautica = { version = "0.2.0", features = ["simd"] }
 chrono = { version = "0.4.24", features = ["serde"] }
 config = "0.13.3"
+deadpool-redis = "0.12.0"
 dotenvy = "0.15.7"
 env_logger = "0.10.0"
 futures = { version = "0.3.28", features = ["compat"] }
 jsonwebtoken = "8.3.0"
 serde = { version = "1.0.159", features = ["derive"] }
-sqlx = { version = "0.6.3", default-features = false, features = ["runtime-actix-rustls", "mysql", "macros", "chrono"] }
+sqlx = { version = "0.6.3", default-features = false, features = ["runtime-actix-rustls", "mysql", "macros", "chrono", "migrate"] }
 tracing = "0.1.37"
 tracing-subscriber = { version  = "0.3.17", features = ["fmt", "std", "env-filter", "registry", "json", "tracing-log"] }
 uuid = { version = "1.3.1", features = ["v4", "serde"] }

@@ -1,4 +1,9 @@
 use serde::{Deserialize, Deserializer};
+use sqlx::{
+    mysql::{MySqlConnectOptions, MySqlSslMode},
+    ConnectOptions,
+};
+use tracing::log::LevelFilter;
 
 use crate::common::Error;
 use std::fmt::Display;
@@ -11,11 +16,7 @@ pub struct Configuration {
     pub environment: Environment,
     pub database: DatabaseConfiguration,
     pub server: ServerConfiguration,
-}
-
-#[derive(Deserialize, Clone)]
-pub struct DatabaseConfiguration {
-    pub url: String,
+    pub redis: RedisConfiguration,
 }
 
 #[derive(Deserialize, Clone)]
@@ -24,6 +25,47 @@ pub struct ServerConfiguration {
     pub host: String,
     pub base_url: String,
     pub scheme: String,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct RedisConfiguration {
+    pub url: String,
+    pub pool_max_open: u64,
+    pub pool_max_idle: u64,
+    pub pool_timeout_seconds: u64,
+    pub pool_expire_seconds: u64,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct DatabaseConfiguration {
+    pub username: String,
+    pub password: String,
+    pub host: String,
+    pub port: u16,
+    pub dbname: String,
+    pub require_ssl: bool,
+}
+
+impl DatabaseConfiguration {
+    pub fn connect_to_db(&self) -> MySqlConnectOptions {
+        let ssl_mode = if self.require_ssl {
+            MySqlSslMode::Required
+        } else {
+            MySqlSslMode::Preferred
+        };
+
+        let mut options = MySqlConnectOptions::new()
+            .host(&self.host)
+            .username(&self.username)
+            .password(&self.password)
+            .port(self.port)
+            .ssl_mode(ssl_mode)
+            .database(&self.dbname);
+
+        options.log_statements(LevelFilter::Trace);
+
+        options
+    }
 }
 
 #[derive(Clone, Eq, PartialEq)]

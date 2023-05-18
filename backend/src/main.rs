@@ -15,7 +15,7 @@ async fn main() -> Result<(), Error> {
     let subscriber = telemetry::get_subscriber(config.environment.clone());
     telemetry::init_subscriber(subscriber);
 
-    let application = Application::build(config.clone()).await?;
+    let application = Application::build(config.clone(), None).await?;
 
     tracing::info!(target: "backend", "Listening on {}://{}:{}", config.server.scheme, config.server.port, config.server.host);
 

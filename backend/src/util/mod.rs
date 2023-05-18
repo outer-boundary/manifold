@@ -1,5 +1,4 @@
 pub mod configuration;
-pub mod database;
 pub mod telemetry;
 pub mod url;
 pub mod users;

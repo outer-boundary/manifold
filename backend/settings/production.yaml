@@ -3,4 +3,7 @@ server:
   host: 0.0.0.0
   base_url: ""
 
+database:
+  require_ssl: true
+
 environment: "production"

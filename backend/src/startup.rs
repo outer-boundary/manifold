@@ -1,13 +1,14 @@
 use crate::{
-    common::{AppState, Error},
+    common::Error,
     routes::{health_check::health_check_route, users::users_scope},
-    util::{configuration::Configuration, database::connect_db},
+    util::configuration::{Configuration, DatabaseConfiguration},
 };
 use actix_web::{
     dev::Server,
     web::{scope, Data},
     App, HttpServer,
 };
+use sqlx::MySqlPool;
 use std::net::TcpListener;
 
 pub struct Application {
@@ -16,12 +17,23 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(config: Configuration) -> Result<Self, Error> {
+    pub async fn build(config: Configuration, test_pool: Option<MySqlPool>) -> Result<Self, Error> {
+        let connection_pool = if let Some(pool) = test_pool {
+            pool
+        } else {
+            get_connection_pool(&config.database).await
+        };
+
+        sqlx::migrate!()
+            .run(&connection_pool)
+            .await
+            .expect("Failed to migrate the database");
+
         let address = format!("{}:{}", config.server.host, config.server.port);
 
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr().unwrap().port();
-        let server = run(listener, config).await?;
+        let server = run(listener, connection_pool, config).await?;
 
         Ok(Self { port, server })
     }
@@ -35,17 +47,29 @@ impl Application {
     }
 }
 
-async fn run(listener: TcpListener, config: Configuration) -> Result<Server, Error> {
-    let app_state = AppState {
-        pool: connect_db(&config.database.url, None).await?,
-    };
+pub async fn get_connection_pool(settings: &DatabaseConfiguration) -> MySqlPool {
+    MySqlPool::connect_lazy_with(settings.connect_to_db())
+}
+
+async fn run(
+    listener: TcpListener,
+    db_pool: MySqlPool,
+    config: Configuration,
+) -> Result<Server, Error> {
+    let cfg = deadpool_redis::Config::from_url(config.redis.url);
+    let redis_pool = cfg
+        .create_pool(Some(deadpool_redis::Runtime::Tokio1))
+        .expect("Cannot create deadpool redis");
 
     let server = HttpServer::new(move || {
-        App::new().app_data(Data::new(app_state.clone())).service(
-            scope("/api")
-                .service(health_check_route)
-                .configure(users_scope),
-        )
+        App::new()
+            .app_data(Data::new(db_pool.clone()))
+            .app_data(Data::new(redis_pool.clone()))
+            .service(
+                scope("/api")
+                    .service(health_check_route)
+                    .service(scope("/users").configure(users_scope)),
+            )
     })
     .listen(listener)?
     .run();

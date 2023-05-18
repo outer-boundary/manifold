@@ -1,13 +1,14 @@
 use actix_web::{get, web, HttpResponse};
+use sqlx::MySqlPool;
 
-use crate::{common::AppState, models::error::ErrorResponse};
+use crate::models::error::ErrorResponse;
 
 #[tracing::instrument]
 #[get("/health-check")]
-async fn health_check_route(app_state: web::Data<AppState>) -> HttpResponse {
+async fn health_check_route(pool: web::Data<MySqlPool>) -> HttpResponse {
     tracing::debug!("Running health check route...");
 
-    let result = sqlx::query("SELECT 1").execute(&app_state.pool).await;
+    let result = sqlx::query("SELECT 1").execute(&**pool).await;
 
     match result {
         Ok(_) => {
@@ -19,33 +20,5 @@ async fn health_check_route(app_state: web::Data<AppState>) -> HttpResponse {
             HttpResponse::ServiceUnavailable()
                 .json(ErrorResponse::new(0, "Unable to connect to database"))
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{common::Error, util::tests::TestPool};
-    use actix_web::{http::StatusCode, test, web::Data, App};
-
-    #[actix_web::test]
-    async fn test_health_check() -> Result<(), Error> {
-        let pool = TestPool::connect().await?;
-
-        let app_state = AppState { pool: pool.get() };
-
-        let app = test::init_service(
-            App::new()
-                .app_data(Data::new(app_state.clone()))
-                .service(health_check_route),
-        )
-        .await;
-
-        let req = test::TestRequest::get().uri("/health-check").to_request();
-        let res = test::call_service(&app, req).await;
-
-        assert_eq!(res.status(), StatusCode::NO_CONTENT);
-
-        Ok(())
     }
 }
