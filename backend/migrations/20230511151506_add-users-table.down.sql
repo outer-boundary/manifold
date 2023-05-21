@@ -1,4 +1,5 @@
 -- Drop created tables.
+DROP TABLE login_identity__email_password;
 DROP TABLE users;
 
 -- Drop created functions.
