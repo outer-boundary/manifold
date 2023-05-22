@@ -18,7 +18,9 @@
     "build:client": "cd client && pnpm run build",
     "postinstall": "run-p install:*",
     "install:backend": "cd backend && cargo install sqlx-cli",
-    "install:client": "cd client && pnpm install"
+    "install:client": "cd client && pnpm install",
+    "in:backend": "cd backend &&",
+    "in:client": "cd client &&"
   },
   "keywords": [],
   "author": "",
