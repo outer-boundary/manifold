@@ -18,7 +18,7 @@ pub async fn redis_connection_check(pool: &Pool) -> Result<(), Error> {
     let mut conn = pool.get().await?;
 
     cmd("SET")
-        .arg(&["connection_check", "42"])
+        .arg(&["connection_check", "success"])
         .query_async(&mut conn)
         .await?;
 
@@ -27,7 +27,7 @@ pub async fn redis_connection_check(pool: &Pool) -> Result<(), Error> {
         .query_async(&mut conn)
         .await?;
 
-    if get_value != Value::Data("42".into()) {
+    if get_value != Value::Data("success".into()) {
         return Err("Unexpected redis value returned".into());
     }
 

@@ -6,6 +6,27 @@ This is the backend for Manifold.
 
 ## Setup
 
+### .env file
+
+Create a `.env` file in the root of the project and populate it using the template below:
+
+```
+MANIFOLD__DATABASE_USERNAME=...
+MANIFOLD__DATABASE_PASSWORD=...
+MANIFOLD__DATABASE_HOST=...
+MANIFOLD__DATABASE_PORT=...
+MANIFOLD__DATABASE_DBNAME=...
+
+# This is required for the compile-time checking done by sqlx
+DATABASE_URL=mysql://${MANIFOLD__DATABASE_USERNAME}:${MANIFOLD__DATABASE_PASSWORD}@${MANIFOLD__DATABASE_HOST}:${MANIFOLD__DATABASE_PORT}/${MANIFOLD__DATABASE_DBNAME}
+```
+
+The `...` represent values that you need to fill in yourself.
+
+### settings/development.yaml file
+
+Copy the `production.yaml` file and rename to `development.yaml`. Update the values to match your development environment.
+
 ### pnpm
 
 To install pnpm, first install the latest LTS version of Node, and then run the following commands:
