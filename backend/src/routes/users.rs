@@ -15,8 +15,8 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
         .service(delete_user_route);
 }
 
-#[tracing::instrument]
-#[get("/")]
+#[tracing::instrument(skip(pool))]
+#[get("")]
 async fn get_users_route(pool: web::Data<MySqlPool>) -> HttpResponse {
     tracing::debug!("Requesting all users...");
 
@@ -37,7 +37,7 @@ async fn get_users_route(pool: web::Data<MySqlPool>) -> HttpResponse {
     }
 }
 
-#[tracing::instrument]
+#[tracing::instrument(skip(pool))]
 #[get("/{id}")]
 async fn get_user_route(pool: web::Data<MySqlPool>, id: web::Path<String>) -> HttpResponse {
     let user_id = id.into_inner();
@@ -78,8 +78,8 @@ async fn get_user_route(pool: web::Data<MySqlPool>, id: web::Path<String>) -> Ht
     }
 }
 
-#[tracing::instrument]
-#[post("/")]
+#[tracing::instrument(skip(pool, request))]
+#[post("")]
 async fn add_user_route(
     pool: web::Data<MySqlPool>,
     request: HttpRequest,
@@ -142,7 +142,7 @@ async fn add_user_route(
     }
 }
 
-#[tracing::instrument]
+#[tracing::instrument(skip(pool))]
 #[delete("/{id}")]
 async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<String>) -> HttpResponse {
     let user_id = id.into_inner();

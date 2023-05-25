@@ -29,7 +29,42 @@ to compile the C implementation of Argon2. Follow the instructions
 [here](https://docs.rs/argonautica/latest/argonautica/#installation) to set up your environment to be able to use
 `argonautica`.
 
-Ensure that you restart your system after installation to ensure that the `argonautica` crate can find the installed C compiler.
+Ensure that you restart your system after installation to ensure that the `argonautica` crate can find the installed C
+compiler.
+
+### Redis
+
+Redis is used to store session information for each user. To install, first follow the official Redis instructions for
+installation on Windows: https://redis.io/docs/getting-started/installation/install-redis-on-windows/. Once this is
+done, continue with the following:
+
+1. Stop the redis service.
+
+```
+sudo service redis-server stop
+```
+
+2. Edit your redis config to match the following lines below:
+
+```
+...
+bind 127.0.0.1 -::1 -> # bind 127.0.0.1 -::1 (Comment out the line)
+...
+protected-mode yes -> protected-mode no (Set to the value 'no')
+...
+```
+
+3. Get net tools and run `ifconfig`, note down the **inet** value under **eth0**.
+
+```
+sudo apt install net-tools
+ifconfig
+```
+
+4. Add the IP address you saved before as the IP address of your redis connection in your `development.yaml` file.
+
+Note that the redis connection will most likely change on every system startup, as the IP address is dynamic. If the
+connection fails, try getting the IP address from the WSL ubuntu container and updating your redis url to this address.
 
 ---
 

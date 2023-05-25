@@ -1,3 +1,5 @@
+environment: "production"
+
 server:
   scheme: https
   host: 0.0.0.0
@@ -6,4 +8,5 @@ server:
 database:
   require_ssl: true
 
-environment: "production"
+redis:
+  url: "redis://127.0.0.1:6379"

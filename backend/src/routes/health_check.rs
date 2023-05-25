@@ -1,24 +1,34 @@
 use actix_web::{get, web, HttpResponse};
+use deadpool_redis::Pool;
 use sqlx::MySqlPool;
 
-use crate::models::error::ErrorResponse;
+use crate::{
+    models::error::ErrorResponse,
+    util::health_check::{database_connection_check, redis_connection_check},
+};
 
-#[tracing::instrument]
+#[tracing::instrument(skip(redis))]
 #[get("/health-check")]
-async fn health_check_route(pool: web::Data<MySqlPool>) -> HttpResponse {
+async fn health_check_route(pool: web::Data<MySqlPool>, redis: web::Data<Pool>) -> HttpResponse {
     tracing::debug!("Running health check route...");
 
-    let result = sqlx::query("SELECT 1").execute(&**pool).await;
+    // Determine whether the database connection is working.
+    let db_result = database_connection_check(&pool).await;
 
-    match result {
-        Ok(_) => {
-            tracing::info!("Server is healthy.");
-            HttpResponse::NoContent().finish()
-        }
-        Err(err) => {
-            tracing::error!("Server failed health check. {}", err);
-            HttpResponse::ServiceUnavailable()
-                .json(ErrorResponse::new(0, "Unable to connect to database"))
-        }
-    }
+    if let Err(err) = db_result {
+        tracing::error!("Failed database connection health check failed. {}", err);
+        return HttpResponse::ServiceUnavailable()
+            .json(ErrorResponse::new(0, "Unable to connect to database"));
+    };
+
+    let redis_result = redis_connection_check(&redis).await;
+
+    if let Err(err) = redis_result {
+        tracing::error!("Failed redis connection health check. {}", err);
+        return HttpResponse::ServiceUnavailable()
+            .json(ErrorResponse::new(0, "Unable to connect to redis"));
+    };
+
+    tracing::info!("Server is healthy.");
+    HttpResponse::NoContent().finish()
 }

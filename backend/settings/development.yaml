@@ -1,9 +1,0 @@
-server:
-  scheme: http
-  host: localhost
-  base_url: "http://localhost"
-
-database:
-  require_ssl: false
-
-environment: "development"
