@@ -4,9 +4,9 @@ use deadpool_redis::{
 };
 use sqlx::MySqlPool;
 
-use crate::common::Error;
+use crate::common::MFResult;
 
-pub async fn database_connection_check(pool: &MySqlPool) -> Result<(), Error> {
+pub async fn database_connection_check(pool: &MySqlPool) -> MFResult<()> {
     sqlx::query("SELECT 1")
         .execute(pool)
         .await
@@ -14,7 +14,7 @@ pub async fn database_connection_check(pool: &MySqlPool) -> Result<(), Error> {
         .map_err(|err| err.into())
 }
 
-pub async fn redis_connection_check(pool: &Pool) -> Result<(), Error> {
+pub async fn redis_connection_check(pool: &Pool) -> MFResult<()> {
     let mut conn = pool.get().await?;
 
     cmd("SET")

@@ -1,13 +1,15 @@
 extern crate argonautica;
 
 use backend::{
-    common::Error,
+    common::MFError,
     startup::Application,
     util::{configuration::get_config, telemetry},
 };
 
+use uuid::Uuid;
+
 #[actix_web::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> MFResult<()> {
     dotenvy::dotenv().ok();
 
     let config = get_config().expect("Failed to read settings");

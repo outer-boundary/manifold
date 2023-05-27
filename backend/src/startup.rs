@@ -1,5 +1,5 @@
 use crate::{
-    common::Error,
+    common::MFResult,
     routes::{health_check::health_check_route, users::users_scope},
     util::configuration::{Configuration, DatabaseConfiguration},
 };
@@ -17,7 +17,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(config: Configuration, test_pool: Option<MySqlPool>) -> Result<Self, Error> {
+    pub async fn build(config: Configuration, test_pool: Option<MySqlPool>) -> MFResult<Self> {
         let connection_pool = if let Some(pool) = test_pool {
             pool
         } else {
@@ -42,7 +42,7 @@ impl Application {
         self.port
     }
 
-    pub async fn run_until_stopped(self) -> Result<(), Error> {
+    pub async fn run_until_stopped(self) -> MFResult<()> {
         self.server.await.map_err(|err| err.into())
     }
 }
@@ -51,11 +51,7 @@ pub async fn get_connection_pool(settings: &DatabaseConfiguration) -> MySqlPool 
     MySqlPool::connect_lazy_with(settings.connect_to_db())
 }
 
-async fn run(
-    listener: TcpListener,
-    db_pool: MySqlPool,
-    config: Configuration,
-) -> Result<Server, Error> {
+async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -> MFResult<Server> {
     let cfg = deadpool_redis::Config::from_url(config.redis.url);
     let redis_pool = cfg
         .create_pool(Some(deadpool_redis::Runtime::Tokio1))

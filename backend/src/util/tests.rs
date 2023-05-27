@@ -1,4 +1,4 @@
-use crate::common::Error;
+use crate::common::MFResult;
 use sqlx::{mysql::MySqlPoolOptions, Executor, MySqlPool};
 
 pub struct TestPool {
@@ -6,7 +6,7 @@ pub struct TestPool {
 }
 
 impl TestPool {
-    pub async fn connect() -> Result<Self, Error> {
+    pub async fn connect() -> MFResult<Self> {
         dotenvy::dotenv()?;
 
         let pool = MySqlPoolOptions::new()

@@ -5,7 +5,7 @@ use sqlx::{
 };
 use tracing::log::LevelFilter;
 
-use crate::common::Error;
+use crate::common::{MFError, MFResult};
 use std::fmt::Display;
 
 use serde::de::Error as DeserializeError;
@@ -103,7 +103,7 @@ impl<'de> Deserialize<'de> for Environment {
 }
 
 impl TryFrom<&str> for Environment {
-    type Error = Error;
+    type Error = MFError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value.to_lowercase().as_str() {
@@ -115,7 +115,7 @@ impl TryFrom<&str> for Environment {
 }
 
 impl TryFrom<String> for Environment {
-    type Error = Error;
+    type Error = MFError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Environment::try_from(value.as_str())
@@ -144,7 +144,7 @@ impl Display for Environment {
 /// a `__` separator then the category of config,
 /// followed by `_` separator,  and then the variable, e.g.
 /// `MANIFOLD__APPLICATION_PORT=5001` for `port` to be set as `5001`
-pub fn get_config() -> Result<Configuration, Error> {
+pub fn get_config() -> MFResult<Configuration> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let settings_directory = base_path.join("settings");
 
