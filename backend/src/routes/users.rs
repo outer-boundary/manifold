@@ -7,6 +7,7 @@ use crate::{
 };
 use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse};
 use sqlx::MySqlPool;
+use uuid::Uuid;
 
 pub fn users_scope(cfg: &mut web::ServiceConfig) {
     cfg.service(get_users_route)
@@ -39,20 +40,20 @@ async fn get_users_route(pool: web::Data<MySqlPool>) -> HttpResponse {
 
 #[tracing::instrument(skip(pool))]
 #[get("/{id}")]
-async fn get_user_route(pool: web::Data<MySqlPool>, id: web::Path<String>) -> HttpResponse {
+async fn get_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> HttpResponse {
     let user_id = id.into_inner();
 
-    tracing::debug!("Requesting user with id '{}'...", user_id.clone());
+    tracing::debug!("Requesting user with id '{}'...", user_id);
 
-    let user = get_user(user_id.clone(), &pool).await;
+    let user = get_user(user_id, &pool).await;
 
     match user {
         Ok(Some(user)) => {
-            tracing::info!("Found user with id '{}'.", user_id.clone());
+            tracing::info!("Found user with id '{}'.", user_id);
             HttpResponse::Ok().json(user)
         }
         Ok(None) => {
-            tracing::warn!("No user found with id '{}'.", user_id.clone());
+            tracing::warn!("No user found with id '{}'.", user_id);
             HttpResponse::NotFound().json(ErrorResponse::new(
                 0,
                 format!("No user with id '{}'", user_id),
@@ -61,7 +62,7 @@ async fn get_user_route(pool: web::Data<MySqlPool>, id: web::Path<String>) -> Ht
         Err(err) => {
             tracing::error!(
                 "Failed while trying to find user with id '{}'. {}",
-                user_id.clone(),
+                user_id,
                 err
             );
             HttpResponse::InternalServerError().json(
@@ -91,11 +92,11 @@ async fn add_user_route(
 
     match result {
         Ok(user_id) => {
-            let user = get_user(user_id.clone(), &pool).await;
+            let user = get_user(user_id, &pool).await;
 
             match user {
                 Ok(Some(user)) => {
-                    tracing::info!("Created new user with id '{}'.", user_id.clone());
+                    tracing::info!("Created new user with id '{}'.", user_id);
                     HttpResponse::Created()
                         .append_header((
                             header::LOCATION,
@@ -104,10 +105,7 @@ async fn add_user_route(
                         .json(user)
                 }
                 Ok(None) => {
-                    tracing::error!(
-                        "Could not find newly created user with id '{}'.",
-                        user_id.clone()
-                    );
+                    tracing::error!("Could not find newly created user with id '{}'.", user_id);
                     HttpResponse::InternalServerError().json(ErrorResponse::new(
                         0,
                         format!("Could not find newly created user with id '{}'", user_id),
@@ -116,7 +114,7 @@ async fn add_user_route(
                 Err(err) => {
                     tracing::error!(
                         "Error occurred while trying to get newly created user with id '{}'. {}",
-                        user_id.clone(),
+                        user_id,
                         err
                     );
                     HttpResponse::InternalServerError().json(
@@ -144,26 +142,26 @@ async fn add_user_route(
 
 #[tracing::instrument(skip(pool))]
 #[delete("/{id}")]
-async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<String>) -> HttpResponse {
+async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> HttpResponse {
     let user_id = id.into_inner();
 
-    tracing::debug!("Deleting user with id '{}'...", user_id.clone());
+    tracing::debug!("Deleting user with id '{}'...", user_id);
 
-    let user = get_user(user_id.clone(), &pool).await;
+    let user = get_user(user_id, &pool).await;
 
     match user {
         Ok(Some(_)) => {
-            let result = delete_user(user_id.clone(), &pool).await;
+            let result = delete_user(user_id, &pool).await;
 
             match result {
                 Ok(_) => {
-                    tracing::info!("Deleted user with id '{}'.", user_id.clone());
+                    tracing::info!("Deleted user with id '{}'.", user_id);
                     HttpResponse::NoContent().finish()
                 }
                 Err(err) => {
                     tracing::error!(
                         "Failed while trying to delete user with id '{}'. {}",
-                        user_id.clone(),
+                        user_id,
                         err
                     );
                     HttpResponse::InternalServerError().json(
@@ -177,10 +175,7 @@ async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<String>) ->
             }
         }
         Ok(None) => {
-            tracing::warn!(
-                "Trying to delete non-existent user with id '{}'.",
-                user_id.clone()
-            );
+            tracing::warn!("Trying to delete non-existent user with id '{}'.", user_id);
             HttpResponse::NotFound().json(ErrorResponse::new(
                 0,
                 format!("Trying to delete non-existent user with id '{}'", user_id),
@@ -189,7 +184,7 @@ async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<String>) ->
         Err(err) => {
             tracing::error!(
                 "Failed while trying to delete user with id '{}'. {}",
-                user_id.clone(),
+                user_id,
                 err
             );
             HttpResponse::InternalServerError().json(
