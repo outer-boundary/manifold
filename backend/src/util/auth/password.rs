@@ -1,21 +1,21 @@
-use argonautica::{Hasher, Verifier};
+use argonautica::{input::Salt, Hasher, Verifier};
 use color_eyre::{eyre::eyre, Result};
-use uuid::Uuid;
 
-#[tracing::instrument(skip(password, salt))]
-pub async fn hash(password: String, salt: Option<String>) -> Result<(String, String)> {
-    let salt = salt.unwrap_or(Uuid::new_v4().as_simple().to_string());
+#[tracing::instrument(skip(password))]
+pub async fn hash(password: String) -> Result<(String, Salt)> {
     let pepper = std::env::var("MANIFOLD__AUTHENTICATION_PEPPER")?;
 
     let mut hasher = Hasher::default();
+    hasher.configure_memory_size(20480);
+    hasher.configure_iterations(40);
+
     let hash = hasher
         .with_password(password)
-        .with_salt(salt.clone())
         .with_secret_key(pepper)
         .hash()
         .map_err(|err| eyre!(err))?;
 
-    Ok((hash, salt))
+    Ok((hash, hasher.salt().clone()))
 }
 
 #[tracing::instrument(skip(hash, password))]
