@@ -1,5 +1,4 @@
 use crate::{
-    common::MFResult,
     routes::{health_check::health_check_route, users::users_scope},
     util::configuration::{Configuration, DatabaseConfiguration},
 };
@@ -8,6 +7,7 @@ use actix_web::{
     web::{scope, Data},
     App, HttpServer,
 };
+use color_eyre::{eyre::eyre, Result};
 use sqlx::MySqlPool;
 use std::net::TcpListener;
 
@@ -17,7 +17,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(config: Configuration, test_pool: Option<MySqlPool>) -> MFResult<Self> {
+    pub async fn build(config: Configuration, test_pool: Option<MySqlPool>) -> Result<Self> {
         let connection_pool = if let Some(pool) = test_pool {
             pool
         } else {
@@ -42,8 +42,8 @@ impl Application {
         self.port
     }
 
-    pub async fn run_until_stopped(self) -> MFResult<()> {
-        self.server.await.map_err(|err| err.into())
+    pub async fn run_until_stopped(self) -> Result<()> {
+        self.server.await.map_err(|err| eyre!(err))
     }
 }
 
@@ -51,7 +51,7 @@ pub async fn get_connection_pool(settings: &DatabaseConfiguration) -> MySqlPool 
     MySqlPool::connect_lazy_with(settings.connect_to_db())
 }
 
-async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -> MFResult<Server> {
+async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -> Result<Server> {
     let cfg = deadpool_redis::Config::from_url(config.redis.url);
     let redis_pool = cfg
         .create_pool(Some(deadpool_redis::Runtime::Tokio1))

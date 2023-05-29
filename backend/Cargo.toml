@@ -14,6 +14,7 @@ name = "backend"
 actix-web = "4"
 argonautica = { version = "0.2.0", features = ["simd"] }
 chrono = { version = "0.4.24", features = ["serde"] }
+color-eyre = "0.6.2"
 config = "0.13.3"
 deadpool-redis = { version = "0.12.0", features = ["rt_tokio_1"]}
 dotenvy = "0.15.7"

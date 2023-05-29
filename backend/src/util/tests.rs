@@ -1,4 +1,4 @@
-use crate::common::MFResult;
+use color_eyre::Result;
 use sqlx::{mysql::MySqlPoolOptions, Executor, MySqlPool};
 
 pub struct TestPool {
@@ -6,7 +6,7 @@ pub struct TestPool {
 }
 
 impl TestPool {
-    pub async fn connect() -> MFResult<Self> {
+    pub async fn connect() -> Result<Self> {
         dotenvy::dotenv()?;
 
         let pool = MySqlPoolOptions::new()

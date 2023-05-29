@@ -1,8 +1,9 @@
-use crate::{common::MFResult, models::users::*};
+use crate::models::users::*;
+use color_eyre::Result;
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
-pub async fn get_users(db_pool: &MySqlPool) -> MFResult<Vec<User>> {
+pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
     let users = sqlx::query_as!(
         DbUser,
         "SELECT as_uuid(id) AS id, username, display_name, first_name, last_name, created_at, updated_at FROM users ORDER BY id"
@@ -19,7 +20,7 @@ pub async fn get_users(db_pool: &MySqlPool) -> MFResult<Vec<User>> {
     Ok(users)
 }
 
-pub async fn get_user(id: String, db_pool: &MySqlPool) -> MFResult<Option<User>> {
+pub async fn get_user(id: String, db_pool: &MySqlPool) -> Result<Option<User>> {
     let user = sqlx::query_as!(
         DbUser,
         "SELECT as_uuid(id) AS id, username, display_name, first_name, last_name, created_at, updated_at FROM users WHERE id = as_bin(?)",
@@ -32,7 +33,7 @@ pub async fn get_user(id: String, db_pool: &MySqlPool) -> MFResult<Option<User>>
     Ok(user)
 }
 
-pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> MFResult<String> {
+pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> Result<String> {
     let user_id = Uuid::new_v4().to_string();
     sqlx::query!(
         "INSERT INTO users (id, username, display_name) VALUES (as_bin(?), ?, ?)",
@@ -46,7 +47,7 @@ pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> MFResult<String
     Ok(user_id)
 }
 
-pub async fn delete_user(id: String, db_pool: &MySqlPool) -> MFResult<()> {
+pub async fn delete_user(id: String, db_pool: &MySqlPool) -> Result<()> {
     sqlx::query!("DELETE FROM users WHERE id = as_bin(?)", id)
         .execute(db_pool)
         .await?;

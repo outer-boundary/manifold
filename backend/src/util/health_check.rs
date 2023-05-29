@@ -1,20 +1,19 @@
+use color_eyre::{eyre::eyre, Result};
 use deadpool_redis::{
     redis::{cmd, Value},
     Pool,
 };
 use sqlx::MySqlPool;
 
-use crate::common::MFResult;
-
-pub async fn database_connection_check(pool: &MySqlPool) -> MFResult<()> {
+pub async fn database_connection_check(pool: &MySqlPool) -> Result<()> {
     sqlx::query("SELECT 1")
         .execute(pool)
         .await
         .map(|_| ())
-        .map_err(|err| err.into())
+        .map_err(|err| eyre!(err))
 }
 
-pub async fn redis_connection_check(pool: &Pool) -> MFResult<()> {
+pub async fn redis_connection_check(pool: &Pool) -> Result<()> {
     let mut conn = pool.get().await?;
 
     cmd("SET")
@@ -28,7 +27,7 @@ pub async fn redis_connection_check(pool: &Pool) -> MFResult<()> {
         .await?;
 
     if get_value != Value::Data("success".into()) {
-        return Err("Unexpected redis value returned".into());
+        return Err(eyre!("Unexpected redis value returned"));
     }
 
     Ok(())
