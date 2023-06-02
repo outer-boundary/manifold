@@ -1,12 +1,11 @@
+use color_eyre::{eyre::eyre, Result};
 use serde::{Deserialize, Deserializer};
 use sqlx::{
     mysql::{MySqlConnectOptions, MySqlSslMode},
     ConnectOptions,
 };
-use tracing::log::LevelFilter;
-
-use crate::common::Error;
 use std::fmt::Display;
+use tracing::log::LevelFilter;
 
 use serde::de::Error as DeserializeError;
 
@@ -103,19 +102,19 @@ impl<'de> Deserialize<'de> for Environment {
 }
 
 impl TryFrom<&str> for Environment {
-    type Error = Error;
+    type Error = color_eyre::Report;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value.to_lowercase().as_str() {
             "production" | "prod" => Ok(Environment::Production),
             "development" | "dev" => Ok(Environment::Development),
-            _ => Err(format!("Invalid environment value: {}", value).into()),
+            _ => Err(eyre!("Invalid environment value: {}", value)),
         }
     }
 }
 
 impl TryFrom<String> for Environment {
-    type Error = Error;
+    type Error = color_eyre::Report;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Environment::try_from(value.as_str())
@@ -144,7 +143,7 @@ impl Display for Environment {
 /// a `__` separator then the category of config,
 /// followed by `_` separator,  and then the variable, e.g.
 /// `MANIFOLD__APPLICATION_PORT=5001` for `port` to be set as `5001`
-pub fn get_config() -> Result<Configuration, Error> {
+pub fn get_config() -> Result<Configuration> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let settings_directory = base_path.join("settings");
 
@@ -171,5 +170,5 @@ pub fn get_config() -> Result<Configuration, Error> {
 
     config
         .try_deserialize::<Configuration>()
-        .map_err(|err| err.into())
+        .map_err(|err| eyre!(err))
 }

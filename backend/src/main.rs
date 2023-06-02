@@ -1,13 +1,15 @@
 extern crate argonautica;
 
 use backend::{
-    common::Error,
     startup::Application,
     util::{configuration::get_config, telemetry},
 };
+use color_eyre::Result;
 
 #[actix_web::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<()> {
+    color_eyre::install()?;
+
     dotenvy::dotenv().ok();
 
     let config = get_config().expect("Failed to read settings");
