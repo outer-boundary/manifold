@@ -3,6 +3,7 @@ use color_eyre::Result;
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
+#[tracing::instrument(skip(db_pool))]
 pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
     let users = sqlx::query_as!(
         User,
@@ -14,6 +15,7 @@ pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
     Ok(users)
 }
 
+#[tracing::instrument(skip(db_pool))]
 pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
     let user = sqlx::query_as!(
         User,
@@ -26,6 +28,7 @@ pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
     Ok(user)
 }
 
+#[tracing::instrument(skip(db_pool))]
 pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> Result<Uuid> {
     let id = Uuid::new_v4();
     sqlx::query!(
@@ -40,6 +43,7 @@ pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> Result<Uuid> {
     Ok(id)
 }
 
+#[tracing::instrument(skip(db_pool))]
 pub async fn delete_user(id: Uuid, db_pool: &MySqlPool) -> Result<()> {
     sqlx::query!("DELETE FROM users WHERE id = ?", id)
         .execute(db_pool)
