@@ -65,7 +65,7 @@ done, continue with the following:
 sudo service redis-server stop
 ```
 
-2. Edit your redis config to match the following lines below:
+2. Edit your redis config (`sudo nano /etc/redis/redis.conf`) to match the following lines below:
 
 ```
 ...
@@ -82,7 +82,13 @@ sudo apt install net-tools
 ifconfig
 ```
 
-4. Add the IP address you saved before as the IP address of your redis connection in your `development.yaml` file.
+4. Restart your redis server.
+
+```
+sudo service redis-server start
+```
+
+5. Add the IP address you saved before as the IP address of your redis connection in your `development.yaml` file.
 
 Note that the redis connection will most likely change on every system startup, as the IP address is dynamic. If the
 connection fails, try getting the IP address from the WSL ubuntu container and updating your redis url to this address.
