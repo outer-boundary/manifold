@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-// Model representing a user.
+// Model representing a user entry in the users table.
 #[derive(Serialize, Deserialize)]
 pub struct User {
     pub id: Uuid,

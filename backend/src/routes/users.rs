@@ -1,5 +1,6 @@
 use crate::{
-    models::{error::ErrorResponse, users::*},
+    models::users::*,
+    types::error::ErrorResponse,
     util::{
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},

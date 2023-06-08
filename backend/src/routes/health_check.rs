@@ -3,7 +3,7 @@ use deadpool_redis::Pool;
 use sqlx::MySqlPool;
 
 use crate::{
-    models::error::ErrorResponse,
+    types::error::ErrorResponse,
     util::health_check::{database_connection_check, redis_connection_check},
 };
 
