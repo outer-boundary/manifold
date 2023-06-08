@@ -16,6 +16,9 @@ pub struct Configuration {
     pub database: DatabaseConfiguration,
     pub server: ServerConfiguration,
     pub redis: RedisConfiguration,
+    pub secret: SecretConfiguration,
+    pub email: EmailConfiguration,
+    pub frontend_url: String,
 }
 
 #[derive(Deserialize, Clone)]
@@ -41,8 +44,22 @@ pub struct DatabaseConfiguration {
     pub password: String,
     pub host: String,
     pub port: u16,
-    pub dbname: String,
+    pub db_name: String,
     pub require_ssl: bool,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct SecretConfiguration {
+    pub secret_key: String,
+    pub token_expiration: i64,
+    pub hmac_secret: String,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct EmailConfiguration {
+    pub host: String,
+    pub host_user: String,
+    pub host_user_password: String,
 }
 
 impl DatabaseConfiguration {
@@ -59,7 +76,7 @@ impl DatabaseConfiguration {
             .password(&self.password)
             .port(self.port)
             .ssl_mode(ssl_mode)
-            .database(&self.dbname);
+            .database(&self.db_name);
 
         options.log_statements(LevelFilter::Trace);
 
@@ -149,7 +166,7 @@ pub fn get_config() -> Result<Configuration> {
 
     // Detect the running environment.
     // Default to `development` if unspecified.
-    let environment: Environment = std::env::var("MANIFOLD__ENVIRONMENT")
+    let environment: Environment = std::env::var("MANIFOLD_ENVIRONMENT")
         .unwrap_or_else(|_| "development".into())
         .try_into()
         .expect("Failed to parse MANIFOLD__ENVIRONMENT.");
@@ -159,12 +176,12 @@ pub fn get_config() -> Result<Configuration> {
         .add_source(config::File::from(
             settings_directory.join(environment_filename),
         ))
-        // Add in config from environment variables (with a prefix of MANIFOLD and '_' as separator)
-        // E.g. `MANIFOLD__SERVER_PORT=5001 would set `Config.server.port` to 5001.
+        // Add in config from environment variables (with a prefix of MANIFOLD and '__' as separator)
+        // E.g. `MANIFOLD__SERVER__PORT=5001 would set `Config.server.port` to 5001.
         .add_source(
             config::Environment::with_prefix("MANIFOLD")
                 .prefix_separator("__")
-                .separator("_"),
+                .separator("__"),
         )
         .build()?;
 
