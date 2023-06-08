@@ -9,5 +9,5 @@ redis:
 
 email:
   host: smtp.gmail.com
-  host_user: Manifold
-  host_user_password: qwxhgtigcjtocnra
+  host_user: manifold.ob@gmail.com
+  host_user_password: dspugkkobroonrcg
