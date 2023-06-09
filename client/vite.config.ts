@@ -1,16 +1,16 @@
-import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vitest/config';
-import { internalIpV4 } from 'internal-ip';
+import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig } from "vitest/config";
+import { internalIpV4 } from "internal-ip";
 
 export default defineConfig(async () => {
 	const config = {
 		plugins: [sveltekit()],
 		server: {
-			host: '0.0.0.0',
+			host: "0.0.0.0",
 			port: 5173,
 			strictPort: true,
 			hmr: {
-				protocol: 'ws',
+				protocol: "ws",
 				host: await internalIpV4(),
 				port: 5183
 			}
@@ -27,7 +27,7 @@ export default defineConfig(async () => {
 			assetsInlineLimit: 0
 		},
 		test: {
-			include: ['src/**/*.{test,spec}.{js,ts}']
+			include: ["src/**/*.{test,spec}.{js,ts}"]
 		}
 	};
 
