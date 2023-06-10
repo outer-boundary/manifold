@@ -28,6 +28,13 @@ export default defineConfig(async () => {
 		},
 		test: {
 			include: ["src/**/*.{test,spec}.{js,ts}"]
+		},
+		css: {
+			preprocessorOptions: {
+				scss: {
+					additionalData: `@import './src/styles/globalStyles.scss';`
+				}
+			}
 		}
 	};
 

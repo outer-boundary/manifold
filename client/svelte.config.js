@@ -3,11 +3,7 @@ import { vitePreprocess } from "@sveltejs/kit/vite";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: vitePreprocess({
-		scss: {
-			prependData: `@import './src/styles/globalStyles.scss';`,      
-		}
-	}),
+	preprocess: vitePreprocess({}),
 
 	kit: {
 		adapter: adapter(),
@@ -22,7 +18,14 @@ const config = {
 				"connect-src":
 					process.env.TAURI_DEBUG === "true"
 						? ["self", "ws://10.1.1.123:5183/", "ws://localhost:5173"]
-						: undefined
+						: [
+								"self",
+								"ws://10.1.1.123:5183/",
+								"ws://localhost:5173",
+								"api.iconify.design",
+								"api.simplesvg.com",
+								"api.unisvg.com"
+						  ]
 			}
 		}
 	}
