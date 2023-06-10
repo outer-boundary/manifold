@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from "@iconify/svelte";
+	import { goto } from "$app/navigation";
 
 	let sidebarOpenState = true;
 	const closedWidth = "80px";
@@ -33,7 +34,10 @@
 			class="tab {selectedTab === 'domains' && 'selected'}"
 			on:mouseenter={() => toggleHoverEffect("domains")}
 			on:mouseleave={() => toggleHoverEffect("domains")}
-			on:click={() => (selectedTab = "domains")}
+			on:click={() => {
+				selectedTab = "domains";
+				goto("/domains");
+			}}
 		>
 			<Icon class="tabIcon" icon="material-symbols:filter-none-rounded" />
 			<p class="title">Domains</p>
