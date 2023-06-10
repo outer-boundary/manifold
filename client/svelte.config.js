@@ -3,7 +3,7 @@ import { vitePreprocess } from "@sveltejs/kit/vite";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: vitePreprocess({}),
+	preprocess: vitePreprocess(),
 
 	kit: {
 		adapter: adapter(),
@@ -12,7 +12,7 @@ const config = {
 			directives: {
 				"default-src": ["self", "ws://10.1.1.123:5183/"],
 				"img-src": ["self"],
-				"script-src": ["self", "unsafe-inline", "inline"],
+				"script-src": ["self", "unsafe-inline"],
 				"style-src": ["self", "unsafe-inline"],
 				// Vite uses WebSockets for HMR, so WebSocket connections to localhost:5173 are whitelisted during development
 				"connect-src":

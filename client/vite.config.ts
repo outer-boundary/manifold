@@ -13,6 +13,10 @@ export default defineConfig(async () => {
 				protocol: "ws",
 				host: await internalIpV4(),
 				port: 5183
+			},
+			// Allow serving files from the public folder
+			fs: {
+				allow: ["public"]
 			}
 		},
 		build: {
