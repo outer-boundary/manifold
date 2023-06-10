@@ -8,13 +8,17 @@
 
 <div class="sidebar" style={`width: ${sidebarOpenState ? openWidth : closedWidth}`}>
 	<button class="collapseButton" on:click={() => (sidebarOpenState = !sidebarOpenState)}>
-		<Icon id="collapseIcon" icon="material-symbols:arrow-back-ios-new-rounded" style={`rotate: ${sidebarOpenState ? '0deg' : '180deg'}`}/>
+		<Icon
+			class="collapseIcon"
+			icon="material-symbols:arrow-back-ios-new-rounded"
+			style={`rotate: ${sidebarOpenState ? "0deg" : "180deg"}`}
+		/>
 	</button>
 	<p>Sup, I'm the sidebar!</p>
 </div>
 
 <style lang="scss">
-  $sidebarTransitionTime: 300ms;
+	$sidebarTransitionTime: 300ms;
 
 	.sidebar {
 		outline: 2px solid #313131; // $mainBorderWidth $secondaryElementColour
@@ -34,18 +38,14 @@
 		top: 10px;
 		right: 10px;
 
-    #collapseIcon {
-			width: 10px;
-			height: 10px;
-      transition: rotate $sidebarTransitionTime ease-in-out;
+		// Can't style the component directly.
+		// See: https://iconify.design/docs/icon-components/svelte/color.html
+		& > :global(.collapseIcon) {
+			width: 16px;
+			height: 16px;
+			transition: rotate $sidebarTransitionTime ease-in-out;
 		}
 	}
-
-  .collapseIcon {
-			width: 10px;
-			height: 10px;
-      transition: rotate $sidebarTransitionTime ease-in-out;
-		}
 
 	p {
 		color: white; // $mainTextColour
