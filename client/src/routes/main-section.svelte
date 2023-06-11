@@ -3,7 +3,7 @@
 </script>
 
 <div class="mainSection">
-	<p>Yo, I'm the main section.</p>
+	<slot />
 </div>
 
 <style lang="scss">

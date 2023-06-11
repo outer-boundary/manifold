@@ -47,7 +47,10 @@
 			class="tab {selectedTab === 'friends' && 'selected'}"
 			on:mouseenter={() => toggleHoverEffect("friends")}
 			on:mouseleave={() => toggleHoverEffect("friends")}
-			on:click={() => (selectedTab = "friends")}
+			on:click={() => {
+				selectedTab = "friends";
+				goto("/friends");
+			}}
 		>
 			<Icon class="tabIcon" icon="material-symbols:group-rounded" />
 			<p class="title">Friends</p>
@@ -57,7 +60,10 @@
 			class="tab {selectedTab === 'settings' && 'selected'}"
 			on:mouseenter={() => toggleHoverEffect("settings")}
 			on:mouseleave={() => toggleHoverEffect("settings")}
-			on:click={() => (selectedTab = "settings")}
+			on:click={() => {
+				selectedTab = "settings";
+				goto("/settings");
+			}}
 		>
 			<Icon class="tabIcon" icon="material-symbols:settings-rounded" />
 			<p class="title">Settings</p>
@@ -114,7 +120,7 @@
 		width: 40px;
 		height: 40px;
 		position: absolute;
-		top: 10px;
+		top: 28px;
 		right: 10px;
 		border-radius: 100%;
 		background-color: transparent;

@@ -11,13 +11,13 @@ const config = {
 			mode: "hash",
 			directives: {
 				"default-src": ["self", "ws://10.1.1.123:5183/"],
-				"img-src": ["self"],
+				"img-src": ["self", "https://external-content.duckduckgo.com"],
 				"script-src": ["self", "unsafe-inline"],
 				"style-src": ["self", "unsafe-inline"],
 				// Vite uses WebSockets for HMR, so WebSocket connections to localhost:5173 are whitelisted during development
 				"connect-src":
 					process.env.TAURI_DEBUG === "true"
-						? ["self", "ws://10.1.1.123:5183/", "ws://localhost:5173"]
+						? ["self"]
 						: [
 								"self",
 								"ws://10.1.1.123:5183/",
