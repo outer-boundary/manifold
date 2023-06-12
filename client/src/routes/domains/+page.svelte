@@ -123,7 +123,7 @@
 			width: 40px;
 			height: 100%;
 			position: absolute;
-			transition: opacity 250ms ease-in-out;
+			transition: opacity 200ms ease-out;
 			z-index: 1;
 		}
 
