@@ -7,6 +7,7 @@
 	export let cardType: "favourite" | "all";
 </script>
 
+<!-- When the user hovers over the card, do the transform skew thing based on their mouse pos -->
 <div class="card">
 	{#if cardType === "favourite"}
 		<Icon class="favouriteIcon" icon="material-symbols:star-rounded" />
@@ -40,12 +41,8 @@
 		color: #dbbc58;
 		stroke: black;
 		stroke-width: 1.25px;
-		stroke-dasharray: 0;
+		stroke-dasharray: 0; // Makes it one solid line rather than dashed
 		stroke-linejoin: round;
-		// color: #dbbc58;
-		// filter: drop-shadow(-1px -1px 0px $mainElementColour)
-		// 	drop-shadow(1px -1px 0px $mainElementColour) drop-shadow(-1px 1px 0px $mainElementColour)
-		// 	drop-shadow(1px 1px 0px $mainElementColour);
 	}
 
 	.wallpaper {

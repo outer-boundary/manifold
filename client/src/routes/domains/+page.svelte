@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import DomainCard from "./DomainCard.svelte";
 
 	const wallpapers = [
@@ -16,12 +16,41 @@
 		"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.vJH0drO5V3iaMYeG5YWbFAHaEK%26pid%3DApi&f=1&ipt=725f791eb8e1cb8d6b37cfcf5b9dc92d953f0d3080a394e1d6d48c2df18ccd42&ipo=images",
 		"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.pixelstalk.net%2Fwp-content%2Fuploads%2F2016%2F06%2FHD-images-of-nature-download.jpg&f=1&nofb=1&ipt=75a9c039abf5e3a1f378a14e104ad8a102c021d919cd60170104e03d11fedded&ipo=images"
 	];
+
+	function manageFavouriteDomainsFade(
+		e: UIEvent & {
+			currentTarget: EventTarget & HTMLDivElement;
+		}
+	) {
+		const cards = document.getElementsByClassName("favouriteDomains")[0]!.querySelectorAll(".card");
+		if (cards.length > 0) {
+			const targetAsAny = e.target as any;
+			const halfCardWidth = cards[1].getBoundingClientRect().width / 2;
+			const rightFade = document.getElementsByClassName(
+				"favouriteDomainsRightFade"
+			)[0]! as HTMLElement;
+			const leftFade = document.getElementsByClassName(
+				"favouriteDomainsLeftFade"
+			)[0]! as HTMLElement;
+			if (targetAsAny.scrollLeft >= targetAsAny.scrollLeftMax - halfCardWidth) {
+				rightFade.style.opacity = "0";
+			} else if (targetAsAny.scrollLeft <= targetAsAny.scrollLeftMax - halfCardWidth) {
+				rightFade.style.opacity = "1";
+			}
+			if (targetAsAny.scrollLeft >= halfCardWidth) {
+				leftFade.style.opacity = "1";
+			} else if (targetAsAny.scrollLeft <= halfCardWidth) {
+				leftFade.style.opacity = "0";
+			}
+		}
+	}
 </script>
 
 <div class="domains">
 	<div class="favouriteDomainsContainer">
 		<p class="title">Favourites</p>
-		<div class="favouriteDomains">
+		<div class="favouriteDomains" on:scroll={(e) => manageFavouriteDomainsFade(e)}>
+			<div class="favouriteDomainsLeftFade fade" />
 			{#each [...new Array(10)] as card}
 				<DomainCard
 					cardType="favourite"
@@ -30,6 +59,7 @@
 					wallpaperUrl={wallpapers[Math.floor(Math.random() * wallpapers.length)]}
 				/>
 			{/each}
+			<div class="favouriteDomainsRightFade fade" />
 		</div>
 	</div>
 
@@ -68,6 +98,7 @@
 		display: flex;
 		flex-direction: column;
 		margin-bottom: 60px;
+		position: relative;
 	}
 
 	.title {
@@ -87,6 +118,26 @@
 			min-width: 30%;
 			height: 100%;
 		}
+
+		& .fade {
+			width: 40px;
+			height: 100%;
+			position: absolute;
+			transition: opacity 250ms ease-in-out;
+			z-index: 1;
+		}
+
+		& .favouriteDomainsLeftFade {
+			background: linear-gradient(to right, $mainElementColour, transparent);
+			opacity: 0;
+			left: 0;
+		}
+
+		& .favouriteDomainsRightFade {
+			background: linear-gradient(to right, transparent, $mainElementColour);
+			opacity: 1;
+			right: 0;
+		}
 	}
 
 	.allDomainsContainer {
@@ -95,6 +146,16 @@
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
+		position: relative;
+
+		&::after {
+			content: "";
+			width: 100%;
+			height: 40px;
+			background: linear-gradient(to bottom, transparent, $mainElementColour);
+			position: absolute;
+			bottom: 0;
+		}
 	}
 
 	.allDomains {
