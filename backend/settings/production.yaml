@@ -16,4 +16,4 @@ secret:
   token_expiration: 0
   hmac_secret: ""
 
-frontend_url: ""
+client_url: ""

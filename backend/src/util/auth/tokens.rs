@@ -11,7 +11,10 @@ use pasetors::{
 use rand::{rngs::OsRng, RngCore};
 use uuid::Uuid;
 
-use crate::{types::tokens::ConfirmationToken, util::configuration::get_config};
+use crate::{
+    types::{redis::RedisConnection, tokens::ConfirmationToken},
+    util::configuration::get_config,
+};
 
 const SESSION_KEY_PREFIX: &str = "MANIFOLD";
 const PASSWORD_CHANGE_KEY_PREFIX: &str = "PWD_CHG";
@@ -19,9 +22,9 @@ const PASSWORD_CHANGE_KEY_PREFIX: &str = "PWD_CHG";
 #[tracing::instrument(skip(redis))]
 pub async fn issue_confirmation_token(
     user_id: Uuid,
-    redis: &mut deadpool_redis::redis::aio::Connection,
+    redis: &mut RedisConnection,
     is_for_password_change: bool,
-) -> Result<String> {
+) -> Result<(String, i64)> {
     let session_key: String = {
         let mut buff = [0u8; 128];
         OsRng.fill_bytes(&mut buff);
@@ -48,11 +51,12 @@ pub async fn issue_confirmation_token(
     let config = get_config()?;
     let current_date_time = chrono::Utc::now();
 
-    let time_to_live = if is_for_password_change {
-        chrono::Duration::hours(1)
+    let ttl = if is_for_password_change {
+        60
     } else {
-        chrono::Duration::minutes(config.secret.token_expiration)
+        config.secret.token_expiration
     };
+    let time_to_live = chrono::Duration::minutes(ttl);
 
     let dt = current_date_time + time_to_live;
 
@@ -70,18 +74,21 @@ pub async fn issue_confirmation_token(
     claims.add_additional("session_key", serde_json::json!(session_key))?;
 
     let sk = SymmetricKey::<V4>::from(config.secret.secret_key.as_bytes())?;
-    Ok(local::encrypt(
-        &sk,
-        &claims,
-        None,
-        Some(config.secret.hmac_secret.as_bytes()),
-    )?)
+    Ok((
+        local::encrypt(
+            &sk,
+            &claims,
+            None,
+            Some(config.secret.hmac_secret.as_bytes()),
+        )?,
+        ttl,
+    ))
 }
 
 #[tracing::instrument(skip(redis))]
 pub async fn verify_confirmation_token(
     token: String,
-    redis: &mut deadpool_redis::redis::aio::Connection,
+    redis: &mut RedisConnection,
     is_password: bool,
 ) -> Result<ConfirmationToken> {
     let config = get_config()?;

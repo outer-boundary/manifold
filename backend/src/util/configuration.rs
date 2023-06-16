@@ -18,7 +18,7 @@ pub struct Configuration {
     pub redis: RedisConfiguration,
     pub secret: SecretConfiguration,
     pub email: EmailConfiguration,
-    pub frontend_url: String,
+    pub client_url: String,
 }
 
 #[derive(Deserialize, Clone)]
