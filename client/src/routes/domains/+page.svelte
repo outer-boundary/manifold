@@ -25,22 +25,50 @@
 		const cards = document.getElementsByClassName("favouriteDomains")[0]!.querySelectorAll(".card");
 		if (cards.length > 0) {
 			const targetAsAny = e.target as any;
-			const halfCardWidth = cards[1].getBoundingClientRect().width / 2;
-			const rightFade = document.getElementsByClassName(
-				"favouriteDomainsRightFade"
-			)[0]! as HTMLElement;
+			const quarterCardWidth = cards[1].getBoundingClientRect().width / 4;
 			const leftFade = document.getElementsByClassName(
 				"favouriteDomainsLeftFade"
 			)[0]! as HTMLElement;
-			if (targetAsAny.scrollLeft >= targetAsAny.scrollLeftMax - halfCardWidth) {
+			const rightFade = document.getElementsByClassName(
+				"favouriteDomainsRightFade"
+			)[0]! as HTMLElement;
+			if (targetAsAny.scrollLeft >= targetAsAny.scrollLeftMax - quarterCardWidth) {
 				rightFade.style.opacity = "0";
-			} else if (targetAsAny.scrollLeft <= targetAsAny.scrollLeftMax - halfCardWidth) {
+			} else if (targetAsAny.scrollLeft <= targetAsAny.scrollLeftMax - quarterCardWidth) {
 				rightFade.style.opacity = "1";
 			}
-			if (targetAsAny.scrollLeft >= halfCardWidth) {
+			if (targetAsAny.scrollLeft >= quarterCardWidth) {
 				leftFade.style.opacity = "1";
-			} else if (targetAsAny.scrollLeft <= halfCardWidth) {
+			} else if (targetAsAny.scrollLeft <= quarterCardWidth) {
 				leftFade.style.opacity = "0";
+			}
+		}
+	}
+
+	function manageAllDomainsFade(
+		e: UIEvent & {
+			currentTarget: EventTarget & HTMLDivElement;
+		}
+	) {
+		const cards = document.getElementsByClassName("allDomains")[0]!.querySelectorAll(".card");
+		if (cards.length > 0) {
+			const targetAsAny = e.target as any;
+			const quarterCardHeight = cards[1].getBoundingClientRect().height / 4;
+
+			const topFade = document.getElementsByClassName("allDomainsTopFade")[0]! as HTMLElement;
+			const bottomFade = document.getElementsByClassName("allDomainsBottomFade")[0]! as HTMLElement;
+
+			console.log(targetAsAny.scrollTop, targetAsAny.scrollTopMax);
+
+			if (targetAsAny.scrollTop <= targetAsAny.scrollTopMax - quarterCardHeight) {
+				bottomFade.style.opacity = "1";
+			} else if (targetAsAny.scrollTop >= targetAsAny.scrollTopMax - quarterCardHeight) {
+				bottomFade.style.opacity = "0";
+			}
+			if (targetAsAny.scrollTop >= quarterCardHeight) {
+				topFade.style.opacity = "1";
+			} else if (targetAsAny.scrollLeft <= quarterCardHeight) {
+				topFade.style.opacity = "0";
 			}
 		}
 	}
@@ -65,7 +93,8 @@
 
 	<div class="allDomainsContainer">
 		<p class="title">All</p>
-		<div class="allDomains">
+		<div class="allDomains" on:scroll={(e) => manageAllDomainsFade(e)}>
+			<div class="allDomainsTopFade fade" />
 			{#each [...new Array(12)] as card}
 				<DomainCard
 					cardType="all"
@@ -74,6 +103,7 @@
 					wallpaperUrl={wallpapers[Math.floor(Math.random() * wallpapers.length)]}
 				/>
 			{/each}
+			<div class="allDomainsBottomFade fade" />
 		</div>
 	</div>
 </div>
@@ -84,7 +114,7 @@
 	.domains {
 		width: 100%;
 		height: 100%;
-		padding: 100px 100px;
+		padding: 90px 100px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -120,7 +150,7 @@
 		}
 
 		& .fade {
-			width: 40px;
+			width: 30px;
 			height: 100%;
 			position: absolute;
 			transition: opacity 200ms ease-out;
@@ -134,7 +164,7 @@
 		}
 
 		& .favouriteDomainsRightFade {
-			background: linear-gradient(to right, transparent, $mainElementColour);
+			background: linear-gradient(to left, $mainElementColour, transparent);
 			opacity: 1;
 			right: 0;
 		}
@@ -148,12 +178,23 @@
 		overflow: hidden;
 		position: relative;
 
-		&::after {
-			content: "";
+		& .fade {
 			width: 100%;
-			height: 40px;
-			background: linear-gradient(to bottom, transparent, $mainElementColour);
+			height: 30px;
 			position: absolute;
+			transition: opacity 200ms ease-out;
+			z-index: 1;
+		}
+
+		& .allDomainsTopFade {
+			background: linear-gradient(to bottom, $mainElementColour, transparent);
+			opacity: 0;
+			// not sure why but top: 0 doesn't work as expected. leaving it out works
+		}
+
+		& .allDomainsBottomFade {
+			background: linear-gradient(to top, $mainElementColour, transparent);
+			opacity: 1;
 			bottom: 0;
 		}
 	}

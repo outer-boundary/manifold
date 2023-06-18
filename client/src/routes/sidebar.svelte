@@ -102,6 +102,8 @@
 	.titleContainer {
 		display: flex;
 		align-items: center;
+		align-self: normal;
+		margin-left: 1.5rem;
 		gap: 4px;
 
 		& :global(.logo) {
@@ -161,7 +163,7 @@
 		border-top-left-radius: $mainBorderRadius;
 		border-bottom-left-radius: $mainBorderRadius;
 		background-color: transparent;
-		font-size: 1.2rem;
+		font-size: 1.1rem;
 		transition: background-color 120ms ease-in;
 
 		& :global(*) {
