@@ -148,8 +148,8 @@
 		width: 26px;
 		height: 26px;
 		position: absolute;
-		top: 28px;
-		right: 10px;
+		top: 33px;
+		right: 18px;
 		border-radius: 100%;
 		background-color: black;
 		display: flex;
