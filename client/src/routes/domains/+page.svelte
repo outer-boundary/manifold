@@ -180,7 +180,7 @@
 
 		& .fade {
 			width: 100%;
-			height: 30px;
+			height: 20px;
 			position: absolute;
 			transition: opacity 200ms ease-out;
 			z-index: 1;
