@@ -151,6 +151,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		border: $mainBorderWidth solid $mainElementColour;
 		transition: right $sidebarTransitionTime ease-in-out, border $sidebarTransitionTime ease-in-out;
 
 		// Can't style the component directly.
