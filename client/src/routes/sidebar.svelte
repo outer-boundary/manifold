@@ -18,7 +18,7 @@
 		sidebarOpenState = !sidebarOpenState;
 
 		const elements = document.querySelectorAll(
-			".tabText, .tabs, .title, .actions, .titleContainer, .collapseButton"
+			".tabText, .tabs, .title, .actions, .titleContainer, .collapseButton, .titleDivider, .tabsDivider"
 		) as NodeListOf<HTMLElement>;
 		for (const element of elements) {
 			element.classList.toggle("closed");
@@ -137,10 +137,6 @@
 			font-size: 1.4rem;
 			color: $mainTextColour;
 			transition: opacity $sidebarTransitionTime ease-in-out;
-
-			&.closed {
-				opacity: 0;
-			}
 		}
 	}
 
@@ -160,10 +156,14 @@
 		// Can't style the component directly.
 		// See: https://iconify.design/docs/icon-components/svelte/color.html
 		& > :global(.collapseIcon) {
-			color: white;
+			color: $secondaryElementColour;
+			filter: brightness(
+				1.45
+			); // becaused of the thickness of the icon, it appears much darker than the actual colour
 			width: 16px;
 			height: 16px;
 			transition: rotate $sidebarTransitionTime ease-in-out;
+			position: relative;
 		}
 
 		&.closed {
@@ -179,6 +179,11 @@
 		border-radius: 100px;
 		margin-top: 14px;
 		margin-bottom: 20px;
+		transition: width $sidebarTransitionTime ease-in-out;
+
+		&.closed {
+			width: 65%;
+		}
 	}
 
 	.tabs {
@@ -260,6 +265,11 @@
 		background-color: $secondaryElementColour;
 		border-radius: 100px;
 		margin: 10px;
+		transition: width $sidebarTransitionTime ease-in-out;
+
+		&.closed {
+			width: 50%;
+		}
 	}
 
 	.actions {
