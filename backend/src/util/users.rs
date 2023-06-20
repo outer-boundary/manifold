@@ -4,18 +4,6 @@ use sqlx::MySqlPool;
 use uuid::Uuid;
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
-    let users = sqlx::query_as!(
-        User,
-        "SELECT id AS `id: Uuid`, username, display_name, first_name, last_name, created_at, updated_at FROM users ORDER BY id"
-    )
-    .fetch_all(db_pool)
-    .await?;
-
-    Ok(users)
-}
-
-#[tracing::instrument(skip(db_pool))]
 pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
     let user = sqlx::query_as!(
         User,
@@ -26,6 +14,18 @@ pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
     .await?;
 
     Ok(user)
+}
+
+#[tracing::instrument(skip(db_pool))]
+pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
+    let users = sqlx::query_as!(
+        User,
+        "SELECT id AS `id: Uuid`, username, display_name, first_name, last_name, created_at, updated_at FROM users ORDER BY id"
+    )
+    .fetch_all(db_pool)
+    .await?;
+
+    Ok(users)
 }
 
 #[tracing::instrument(skip(db_pool))]

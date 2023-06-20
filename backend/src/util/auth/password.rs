@@ -2,7 +2,7 @@ use argonautica::{input::Salt, Hasher, Verifier};
 use color_eyre::{eyre::eyre, Result};
 
 #[tracing::instrument(skip(password))]
-pub async fn hash(password: String) -> Result<(String, Salt)> {
+pub async fn hash_password(password: String) -> Result<(String, Salt)> {
     let pepper = std::env::var("MANIFOLD__AUTHENTICATION_PEPPER")?;
 
     let mut hasher = Hasher::default();
@@ -19,7 +19,7 @@ pub async fn hash(password: String) -> Result<(String, Salt)> {
 }
 
 #[tracing::instrument(skip(hash, password))]
-pub async fn verify(hash: String, password: String) -> Result<bool> {
+pub async fn verify_password_hash(hash: String, password: String) -> Result<bool> {
     let pepper = std::env::var("MANIFOLD__AUTHENTICATION_PEPPER")?;
 
     let mut verifier = Verifier::default();
