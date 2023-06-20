@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { sidebarActions } from "../../stores";
 	import DomainCard from "./DomainCard.svelte";
 
 	const wallpapers = [
@@ -72,6 +73,11 @@
 			}
 		}
 	}
+
+	sidebarActions.set([
+		{ iconName: "material-symbols:search-rounded", text: "Join Domain", onClick: () => {} },
+		{ iconName: "material-symbols:add-rounded", text: "Create Domain", onClick: () => {} }
+	]);
 </script>
 
 <div class="domains">

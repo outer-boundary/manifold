@@ -1,12 +1,7 @@
 <script lang="ts">
 	import Icon from "@iconify/svelte";
 	import { goto } from "$app/navigation";
-
-	let sidebarOpenState = true;
-	const closedWidth = "80px";
-	const openWidth = "300px";
-
-	let selectedTab: "domains" | "friends" | "settings" = "domains";
+	import { sidebarActions, type SidebarActions } from "../stores";
 
 	function toggleHoverEffect(tab: typeof selectedTab) {
 		if (selectedTab !== tab) {
@@ -24,6 +19,17 @@
 			element.classList.toggle("closed");
 		}
 	}
+
+	let sidebarOpenState = true;
+	const closedWidth = "80px";
+	const openWidth = "300px";
+
+	let selectedTab: "domains" | "friends" | "settings" = "domains";
+
+	let actions: SidebarActions[] = [];
+	sidebarActions.subscribe((value) => {
+		actions = value;
+	});
 </script>
 
 <div
@@ -85,14 +91,20 @@
 	</div>
 	<div class="tabsDivider" />
 	<div class="actions">
-		<button id="joinDomainAction" class="action">
+		{#each actions as action}
+			<button class="action">
+				<Icon class="actionIcon" icon={action.iconName} />
+				<p class="tabText">{action.text}</p>
+			</button>
+		{/each}
+		<!-- <button id="joinDomainAction" class="action">
 			<Icon class="actionIcon" icon="material-symbols:search-rounded" />
 			<p class="tabText">Join Domain</p>
 		</button>
 		<button id="createDomainAction" class="action">
 			<Icon class="actionIcon" icon="material-symbols:add-rounded" />
 			<p class="tabText">Create Domain</p>
-		</button>
+		</button> -->
 	</div>
 </div>
 
@@ -160,7 +172,7 @@
 			color: $secondaryElementColour;
 			filter: brightness(
 				1.45
-			); // becaused of the thickness of the icon, it appears much darker than the actual colour
+			); // because of the thickness of the icon, it appears much darker than the actual colour
 			width: 16px;
 			height: 16px;
 			transition: rotate $sidebarTransitionTime ease-in-out;
