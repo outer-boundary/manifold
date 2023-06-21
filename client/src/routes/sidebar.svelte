@@ -92,19 +92,11 @@
 	<div class="tabsDivider" />
 	<div class="actions">
 		{#each actions as action}
-			<button class="action">
+			<button class="action" on:click={action.onClick}>
 				<Icon class="actionIcon" icon={action.iconName} />
 				<p class="tabText">{action.text}</p>
 			</button>
 		{/each}
-		<!-- <button id="joinDomainAction" class="action">
-			<Icon class="actionIcon" icon="material-symbols:search-rounded" />
-			<p class="tabText">Join Domain</p>
-		</button>
-		<button id="createDomainAction" class="action">
-			<Icon class="actionIcon" icon="material-symbols:add-rounded" />
-			<p class="tabText">Create Domain</p>
-		</button> -->
 	</div>
 </div>
 

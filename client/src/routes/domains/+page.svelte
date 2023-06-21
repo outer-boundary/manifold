@@ -75,8 +75,20 @@
 	}
 
 	sidebarActions.set([
-		{ iconName: "material-symbols:search-rounded", text: "Join Domain", onClick: () => {} },
-		{ iconName: "material-symbols:add-rounded", text: "Create Domain", onClick: () => {} }
+		{
+			iconName: "material-symbols:search-rounded",
+			text: "Join Domain",
+			onClick: () => {
+				console.log("joined a domain!");
+			}
+		},
+		{
+			iconName: "material-symbols:add-rounded",
+			text: "Create Domain",
+			onClick: () => {
+				console.log("created a domain!");
+			}
+		}
 	]);
 </script>
 
