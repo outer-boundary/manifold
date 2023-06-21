@@ -2,6 +2,7 @@ use crate::{
     models::users::*,
     types::error::ErrorResponse,
     util::{
+        login_identity::add_login_identity,
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},
     },
@@ -89,7 +90,7 @@ async fn add_user_route(
 ) -> HttpResponse {
     tracing::debug!("Creating new user...");
 
-    let result = add_user(new_user.into_inner(), &pool).await;
+    let result = add_user(new_user.clone(), &pool).await;
 
     match result {
         Ok(user_id) => {
@@ -97,13 +98,41 @@ async fn add_user_route(
 
             match user {
                 Ok(Some(user)) => {
-                    tracing::info!("Created new user with id '{}'.", user_id);
-                    HttpResponse::Created()
-                        .append_header((
-                            header::LOCATION,
-                            format!("{}/{}", full_uri(&request), user_id),
-                        ))
-                        .json(user)
+                    let result =
+                        add_login_identity(user_id, new_user.clone().identity, &pool).await;
+
+                    match result {
+                        Ok(_) => {
+                            tracing::info!("Created new user with id '{}'.", user_id);
+                            HttpResponse::Created()
+                                .append_header((
+                                    header::LOCATION,
+                                    format!("{}/{}", full_uri(&request), user_id),
+                                ))
+                                .json(user)
+                        }
+                        Err(err) => {
+                            tracing::error!(
+                                "Error occurred while trying to add login identity for newly created user with id '{}'. {}",
+                                user_id,
+                                err
+                            );
+
+                            // Try to delete the created user if the server failed to also create their login identity.
+                            let _ = delete_user(user_id, &pool).await;
+
+                            HttpResponse::InternalServerError().json(
+                                ErrorResponse::new(
+                                    0,
+                                    format!(
+                                        "Error occurred while trying to add login identity for newly created user with id '{}'",
+                                        user_id
+                                    ),
+                                )
+                                .description(err),
+                            )
+                        }
+                    }
                 }
                 Ok(None) => {
                     tracing::error!("Could not find newly created user with id '{}'.", user_id);

@@ -3,10 +3,10 @@ use color_eyre::{eyre::eyre, Result};
 
 #[tracing::instrument(skip(password))]
 pub async fn hash_password(password: String) -> Result<(String, Salt)> {
-    let pepper = std::env::var("MANIFOLD__AUTHENTICATION_PEPPER")?;
+    let pepper = std::env::var("MANIFOLD__AUTHENTICATION__PEPPER")?;
 
     let mut hasher = Hasher::default();
-    hasher.configure_memory_size(20480);
+    hasher.configure_memory_size(32768);
     hasher.configure_iterations(40);
 
     let hash = hasher
@@ -20,7 +20,7 @@ pub async fn hash_password(password: String) -> Result<(String, Salt)> {
 
 #[tracing::instrument(skip(hash, password))]
 pub async fn verify_password_hash(hash: String, password: String) -> Result<bool> {
-    let pepper = std::env::var("MANIFOLD__AUTHENTICATION_PEPPER")?;
+    let pepper = std::env::var("MANIFOLD__AUTHENTICATION__PEPPER")?;
 
     let mut verifier = Verifier::default();
     let is_valid = verifier

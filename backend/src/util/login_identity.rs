@@ -1,5 +1,5 @@
 use crate::models::login_identity::*;
-use color_eyre::{eyre::eyre, Result};
+use color_eyre::Result;
 use futures::prelude::*;
 use sqlx::MySqlPool;
 use uuid::Uuid;
@@ -54,7 +54,7 @@ pub async fn add_login_identity(
     match new_li {
         NewLoginIdentity::EmailPassword(li) => {
             let (password_hash, salt) = hash_password(li.password).await?;
-            let salt = salt.to_str().map_err(|err| eyre!(err))?;
+            let salt = hex::encode(salt.as_bytes());
 
             sqlx::query_as!(
                 LIEmailPassword,
