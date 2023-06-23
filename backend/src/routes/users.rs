@@ -96,7 +96,7 @@ async fn add_user_route(
 
     match user {
         Ok(user) => match new_user.clone().identity {
-            NewLoginIdentity::EmailPassword(li) => {
+            NewLoginIdentity::Email(li) => {
                 let result = send_multipart_email(
                     "Manifold Account Verification".to_string(),
                     user.id,

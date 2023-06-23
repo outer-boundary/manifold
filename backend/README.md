@@ -125,7 +125,7 @@ production environments remain consistent.
 
 ### ID
 
-IDs should be stored as type `binary(16) PRIMARY KEY NOT NULL DEFAULT (uuid_to_bin(uuid(), true))`
+IDs should be stored as type `binary(16) PRIMARY KEY NOT NULL`
 
 - `binary(16)`: stored as 16 unformatted bytes of data. The other option is to use the type `chars(36)` but that uses
   UTF8 character encoding, which has a variable byte length for each character, so at minimum the amount of bytes used
@@ -135,15 +135,15 @@ IDs should be stored as type `binary(16) PRIMARY KEY NOT NULL DEFAULT (uuid_to_b
   is always unique.
 - `NOT NULL`: There should never be any entry with an id where the id value is null, especially as the id is used as a
   primary key.
-- `DEFAULT (uuid_to_bin(uuid(), true))`: Sets the `id` field so that it is not required to be set when inserting into the
-  table, as this will automatically generate a correctly encoded id value. You can still provide an id
-  value when inserting though, if that is preferred, you just need to remember to manually call `uuid_to_bin` on the
-  UUID string value, ensuring to pass `true` as the second parameter of the function. The `uuid_to_bin` function
-  converts a UUID string into its binary representation, and there is a related `bin_to_uuid` funcion which can be used
-  to convert the binary representation back into a UUID string. The `uuid` function generates a UUID string. The second
-  value in the `uuid_to_bin` function changes the position of the temporal bits in the UUID, which provides better
-  indexing performance in the database. Ensure that you always pass `true` as the second parameter to either the
-  `uuid_to_bin` or `bin_to_uuid` function.
+
+Optionally, you can also use `DEFAULT (uuid_to_bin(uuid(), true))`, which sets the `id` field so that it is not required to be set when inserting into the table. This will automatically generate a correctly encoded id value. You can still provide an id
+value when inserting though, if that is preferred, you just need to remember to manually call `uuid_to_bin` on the
+UUID string value, ensuring to pass `true` as the second parameter of the function. The `uuid_to_bin` function
+converts a UUID string into its binary representation, and there is a related `bin_to_uuid` funcion which can be used
+to convert the binary representation back into a UUID string. The `uuid` function generates a UUID string. The second
+value in the `uuid_to_bin` function changes the position of the temporal bits in the UUID, which provides better
+indexing performance in the database. Ensure that you always pass `true` as the second parameter to either the
+`uuid_to_bin` or `bin_to_uuid` function.
 
 ---
 

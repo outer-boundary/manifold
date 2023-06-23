@@ -4,24 +4,24 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 pub enum LoginIdentityType {
-    EmailPassword,
+    Email,
 }
 
 impl LoginIdentityType {
     pub fn all() -> Vec<LoginIdentityType> {
-        vec![LoginIdentityType::EmailPassword]
+        vec![LoginIdentityType::Email]
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum LoginIdentity {
-    EmailPassword(LIEmailPassword),
+    Email(LIEmail),
 }
 
 // Model representing the data sent from the client to create a new user.
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct LIEmailPassword {
+pub struct LIEmail {
     pub user_id: Uuid,
 
     pub email: String,
@@ -36,12 +36,12 @@ pub struct LIEmailPassword {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum NewLoginIdentity {
-    EmailPassword(NewLIEmailPassword),
+    Email(NewLIEmail),
 }
 
 // Model representing the data sent from the client to create a new user.
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NewLIEmailPassword {
+pub struct NewLIEmail {
     pub email: String,
     pub password: String,
 }
