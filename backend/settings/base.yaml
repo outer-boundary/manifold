@@ -8,6 +8,6 @@ redis:
   pool_expire_seconds: 60
 
 email:
-  host: smtp.gmail.com
-  host_user: manifold.ob@gmail.com
-  host_user_password: dspugkkobroonrcg
+  host: mail.privateemail.com
+  host_user: support@manifold.chat
+  host_user_password: FieryDragons7!

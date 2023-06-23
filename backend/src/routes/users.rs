@@ -1,7 +1,8 @@
 use crate::{
-    models::users::*,
-    types::error::ErrorResponse,
+    models::{login_identity::NewLoginIdentity, users::*},
+    types::{error::ErrorResponse, redis::RedisPool},
     util::{
+        email::send_multipart_email,
         login_identity::add_login_identity,
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},
@@ -81,35 +82,98 @@ async fn get_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> Http
     }
 }
 
-#[tracing::instrument(skip(pool, request))]
+#[tracing::instrument(skip(pool, redis, request))]
 #[post("")]
 async fn add_user_route(
     pool: web::Data<MySqlPool>,
+    redis: web::Data<RedisPool>,
     request: HttpRequest,
     new_user: web::Json<NewUser>,
 ) -> HttpResponse {
     tracing::debug!("Creating new user...");
 
+    // Create the user
     let result = add_user(new_user.clone(), &pool).await;
 
     match result {
         Ok(user_id) => {
+            // Get the user's details
             let user = get_user(user_id, &pool).await;
 
             match user {
                 Ok(Some(user)) => {
+                    // Create their login identity
                     let result =
                         add_login_identity(user_id, new_user.clone().identity, &pool).await;
 
                     match result {
                         Ok(_) => {
-                            tracing::info!("Created new user with id '{}'.", user_id);
-                            HttpResponse::Created()
-                                .append_header((
-                                    header::LOCATION,
-                                    format!("{}/{}", full_uri(&request), user_id),
-                                ))
-                                .json(user)
+                            let redis_conn = redis.get().await;
+
+                            match redis_conn {
+                                Ok(mut redis_conn) => match new_user.clone().identity {
+                                    NewLoginIdentity::EmailPassword(li) => {
+                                        let result = send_multipart_email(
+                                            "Manifold Account Verification".to_string(),
+                                            user_id,
+                                            li.email,
+                                            user.username.clone(),
+                                            "verification_email.html",
+                                            &mut redis_conn,
+                                        )
+                                        .await;
+
+                                        match result {
+                                            Ok(_) => {
+                                                tracing::info!(
+                                                    "Created new user with id '{}'.",
+                                                    user_id
+                                                );
+                                                HttpResponse::Created()
+                                                    .append_header((
+                                                        header::LOCATION,
+                                                        format!(
+                                                            "{}/{}",
+                                                            full_uri(&request),
+                                                            user_id
+                                                        ),
+                                                    ))
+                                                    .json(user)
+                                            }
+                                            Err(err) => {
+                                                tracing::error!(
+                                                        "Error occurred while trying to send verification email to user with id '{}'. {}",
+                                                        user_id,
+                                                        err
+                                                    );
+                                                HttpResponse::InternalServerError().json(
+                                                        ErrorResponse::new(
+                                                            0,
+                                                            format!(
+                                                                "Error occurred while trying to send verification email to user with id '{}'",
+                                                                user_id
+                                                            ),
+                                                        )
+                                                        .description(err),
+                                                    )
+                                            }
+                                        }
+                                    }
+                                },
+                                Err(err) => {
+                                    tracing::error!(
+                                        "Error occurred while trying to get a connection from the redis pool. {}",
+                                        err
+                                    );
+                                    HttpResponse::InternalServerError().json(
+                                        ErrorResponse::new(
+                                            0,
+                                            "Error occurred while trying to get a connection from the redis pool",
+                                        )
+                                        .description(err),
+                                    )
+                                }
+                            }
                         }
                         Err(err) => {
                             tracing::error!(

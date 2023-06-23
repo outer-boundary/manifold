@@ -1,8 +1,6 @@
+use crate::types::redis::RedisPool;
 use color_eyre::{eyre::eyre, Result};
-use deadpool_redis::{
-    redis::{cmd, Value},
-    Pool,
-};
+use deadpool_redis::redis::{cmd, Value};
 use sqlx::MySqlPool;
 
 pub async fn database_connection_check(pool: &MySqlPool) -> Result<()> {
@@ -13,7 +11,7 @@ pub async fn database_connection_check(pool: &MySqlPool) -> Result<()> {
         .map_err(|err| eyre!(err))
 }
 
-pub async fn redis_connection_check(pool: &Pool) -> Result<()> {
+pub async fn redis_connection_check(pool: &RedisPool) -> Result<()> {
     let mut conn = pool.get().await?;
 
     cmd("SET")
@@ -22,6 +20,11 @@ pub async fn redis_connection_check(pool: &Pool) -> Result<()> {
         .await?;
 
     let get_value: Value = cmd("GET")
+        .arg(&["connection_check"])
+        .query_async(&mut conn)
+        .await?;
+
+    cmd("DEL")
         .arg(&["connection_check"])
         .query_async(&mut conn)
         .await?;

@@ -13,12 +13,11 @@ use super::{
     configuration::{get_config, Environment},
 };
 
-#[tracing::instrument(skip(recipient_first_name, recipient_last_name, subject, html_content, text_content),fields(subject = %subject.clone().into()))]
+#[tracing::instrument(skip(html_content, text_content),fields(subject = %subject.clone().into()))]
 pub async fn send_email(
     sender_email: Option<String>,
     recipient_email: String,
-    recipient_first_name: String,
-    recipient_last_name: String,
+    recipient_username: String,
     subject: impl Into<String> + std::clone::Clone,
     html_content: impl Into<String>,
     text_content: impl Into<String>,
@@ -33,7 +32,7 @@ pub async fn send_email(
                 .parse()?,
         ))
         .to(Mailbox::new(
-            Some([recipient_first_name, recipient_last_name].join(" ")),
+            Some(recipient_username),
             recipient_email.parse()?,
         ))
         .subject(subject.clone())
@@ -84,13 +83,12 @@ pub async fn send_email(
     }
 }
 
-#[tracing::instrument(skip(recipient_first_name, recipient_last_name, redis))]
+#[tracing::instrument(skip(redis))]
 pub async fn send_multipart_email(
     subject: String,
     user_id: Uuid,
     recipient_email: String,
-    recipient_first_name: String,
-    recipient_last_name: String,
+    recipient_username: String,
     template_name: &str,
     redis: &mut RedisConnection,
 ) -> Result<()> {
@@ -136,8 +134,7 @@ pub async fn send_multipart_email(
     actix_web::rt::spawn(send_email(
         None,
         recipient_email,
-        recipient_first_name,
-        recipient_last_name,
+        recipient_username,
         subject,
         html_text,
         text,

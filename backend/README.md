@@ -59,13 +59,19 @@ Redis is used to store session information for each user. To install, first foll
 installation on Windows: https://redis.io/docs/getting-started/installation/install-redis-on-windows/. Once this is
 done, continue with the following:
 
-1. Stop the redis service.
+1. In a terminal, access your ubuntu WSL container.
+
+```
+ubuntu
+```
+
+2. Stop the redis service.
 
 ```
 sudo service redis-server stop
 ```
 
-2. Edit your redis config (`sudo nano /etc/redis/redis.conf`) to match the following lines below:
+3. Edit your redis config (`sudo nano /etc/redis/redis.conf`) to match the following lines below:
 
 ```
 ...
@@ -75,23 +81,23 @@ protected-mode yes -> protected-mode no (Set to the value 'no')
 ...
 ```
 
-3. Get net tools and run `ifconfig`, note down the **inet** value under **eth0**.
+4. Get net tools and run `ifconfig`, note down the **inet** value under **eth0**.
 
 ```
 sudo apt install net-tools
 ifconfig
 ```
 
-4. Restart your redis server.
+5. Restart your redis server.
 
 ```
 sudo service redis-server start
 ```
 
-5. Add the IP address you saved before as the IP address of your redis connection in your `development.yaml` file.
+6. Add the IP address you saved before as the IP address of your redis connection in your `development.yaml` file.
 
-Note that the redis connection will most likely change on every system startup, as the IP address is dynamic. If the
-connection fails, try getting the IP address from the WSL ubuntu container and updating your redis url to this address.
+Note that the redis connection may change after a system restart, as the IP address is dynamic. If the
+connection fails, try getting the IP address from the WSL ubuntu container and updating your redis url to this address. Otherwise, a simple `sudo service redis-server restart` should get the redis server back to working again. You may need to keep the terminal open to ensure the redis server stays active.
 
 ---
 
