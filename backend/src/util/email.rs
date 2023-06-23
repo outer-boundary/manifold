@@ -1,3 +1,4 @@
+use crate::types::redis::RedisPool;
 use color_eyre::{eyre::eyre, Result};
 use lettre::{
     message::{header::ContentType, Mailbox, MultiPart, SinglePart},
@@ -5,8 +6,6 @@ use lettre::{
     AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
 };
 use uuid::Uuid;
-
-use crate::types::redis::RedisConnection;
 
 use super::{
     auth::tokens::issue_confirmation_token,
@@ -90,11 +89,14 @@ pub async fn send_multipart_email(
     recipient_email: String,
     recipient_username: String,
     template_name: &str,
-    redis: &mut RedisConnection,
+    redis: &RedisPool,
 ) -> Result<()> {
     let config = get_config()?;
 
-    let (issued_token, token_ttl) = issue_confirmation_token(user_id, redis, false).await?;
+    let mut redis_conn = redis.get().await?;
+
+    let (issued_token, token_ttl) =
+        issue_confirmation_token(user_id, &mut redis_conn, false).await?;
 
     let web_address = match config.environment {
         Environment::Development => format!("{}:{}", config.server.base_url, config.server.port,),

@@ -93,11 +93,7 @@ pub async fn delete_login_identity(
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn delete_all_login_identities(
-    user_id: Uuid,
-    li_type: LoginIdentityType,
-    db_pool: &MySqlPool,
-) -> Result<()> {
+pub async fn delete_all_login_identities(user_id: Uuid, db_pool: &MySqlPool) -> Result<()> {
     futures::stream::iter(LoginIdentityType::all())
         .then(
             |li_type| async move { delete_login_identity(user_id, li_type.clone(), db_pool).await },
