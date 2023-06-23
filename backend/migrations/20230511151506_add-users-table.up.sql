@@ -34,6 +34,8 @@ CREATE TABLE login_identity__email_password (
   password_hash varchar(255) CHARACTER SET utf8mb4 NOT NULL,
   salt varchar(255) CHARACTER SET utf8mb4 NOT NULL,
 
+  verified boolean DEFAULT false NOT NULL,
+
   created_at datetime NOT NULL DEFAULT current_timestamp,
   updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp
 );
