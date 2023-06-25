@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Modals, modalState, sidebarActions } from "../../stores";
+	import { Modal, modalState, openModal, sidebarActions } from "../../stores";
 	import DomainCard from "./domain-card.svelte";
 
 	const wallpapers = [
@@ -79,14 +79,15 @@
 			iconName: "material-symbols:search-rounded",
 			text: "Join Domain",
 			onClick: () => {
-				modalState.set({ name: Modals.CreateDomain });
+				openModal(Modal.JoinDomain);
 			}
 		},
 		{
 			iconName: "material-symbols:add-rounded",
 			text: "Create Domain",
+
 			onClick: () => {
-				modalState.set({ name: Modals.JoinDomain });
+				openModal(Modal.CreateDomain);
 			}
 		}
 	]);
