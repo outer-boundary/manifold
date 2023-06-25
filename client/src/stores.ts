@@ -7,3 +7,11 @@ export interface SidebarActions {
 }
 
 export const sidebarActions = writable<SidebarActions[]>([]);
+
+export enum Modals {
+	None,
+	CreateDomain,
+	JoinDomain
+}
+
+export const modalState = writable<{ name: Modals }>({ name: Modals.None });

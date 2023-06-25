@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { sidebarActions } from "../../stores";
-	import DomainCard from "./DomainCard.svelte";
+	import { Modals, modalState, sidebarActions } from "../../stores";
+	import DomainCard from "./domain-card.svelte";
 
 	const wallpapers = [
 		"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallup.net%2Fwp-content%2Fuploads%2F2016%2F03%2F10%2F343202-landscape-nature.jpg&f=1&nofb=1&ipt=168a2794fc43075e38ccc26608bdb8aaa2e068f2691aa49a3686ca0b34493134&ipo=images",
@@ -79,14 +79,14 @@
 			iconName: "material-symbols:search-rounded",
 			text: "Join Domain",
 			onClick: () => {
-				console.log("joined a domain!");
+				modalState.set({ name: Modals.CreateDomain });
 			}
 		},
 		{
 			iconName: "material-symbols:add-rounded",
 			text: "Create Domain",
 			onClick: () => {
-				console.log("created a domain!");
+				modalState.set({ name: Modals.JoinDomain });
 			}
 		}
 	]);

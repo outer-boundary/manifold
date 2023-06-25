@@ -19,8 +19,4 @@
 		justify-content: center;
 		align-items: center;
 	}
-
-	p {
-		color: white; // $mainTextColour
-	}
 </style>

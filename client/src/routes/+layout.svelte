@@ -1,6 +1,7 @@
 <script>
 	import Sidebar from "./sidebar.svelte";
 	import MainSection from "./main-section.svelte";
+	import Overlay from "./overlay.svelte";
 </script>
 
 <div class="main">
@@ -8,6 +9,7 @@
 	<MainSection>
 		<slot />
 	</MainSection>
+	<Overlay />
 </div>
 
 <style lang="scss">
