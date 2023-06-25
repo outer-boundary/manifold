@@ -41,14 +41,14 @@
 		top: 50%;
 		translate: -50% -50%;
 		opacity: 0;
-		transition: opacity 200ms ease-in-out, scale 200ms ease-in-out;
+		transition: opacity $modalTransitionTime ease-in-out, scale $modalTransitionTime ease-in-out;
 		scale: 0.25;
 
 		&.active {
 			opacity: 1;
 			scale: 1;
 
-			animation: openModal 200ms ease-out alternate;
+			animation: openModal $modalTransitionTime ease-out alternate;
 		}
 	}
 
