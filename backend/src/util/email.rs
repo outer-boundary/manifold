@@ -7,10 +7,7 @@ use lettre::{
 };
 use uuid::Uuid;
 
-use super::{
-    auth::tokens::ConfirmationTokenBuilder,
-    configuration::{get_config, Environment},
-};
+use super::{auth::tokens::ConfirmationTokenBuilder, configuration::get_config};
 
 #[tracing::instrument(skip(html_content, text_content),fields(subject = %subject.clone().into()))]
 pub async fn send_email(

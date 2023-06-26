@@ -10,7 +10,7 @@ use crate::{
         users::{add_user, delete_user, get_user, get_users},
     },
 };
-use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse};
+use actix_web::{delete, get, http::header, patch, post, web, HttpRequest, HttpResponse};
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
@@ -204,4 +204,16 @@ async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> H
             )
         }
     }
+}
+
+#[tracing::instrument(skip(pool))]
+#[patch("/{id}/verify")]
+async fn verify_user_li_route(
+    pool: web::Data<MySqlPool>,
+    id: web::Path<Uuid>,
+    token: web::Json<String>,
+) -> HttpResponse {
+    tracing::info!("token: {}", token.into_inner());
+
+    HttpResponse::NoContent().finish()
 }
