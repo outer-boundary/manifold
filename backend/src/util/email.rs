@@ -1,4 +1,4 @@
-use crate::types::redis::RedisPool;
+use crate::{models::login_identity::LoginIdentityType, types::redis::RedisPool};
 use color_eyre::{eyre::eyre, Result};
 use lettre::{
     message::{header::ContentType, Mailbox, MultiPart, SinglePart},
@@ -8,7 +8,7 @@ use lettre::{
 use uuid::Uuid;
 
 use super::{
-    auth::tokens::issue_confirmation_token,
+    auth::tokens::ConfirmationTokenBuilder,
     configuration::{get_config, Environment},
 };
 
@@ -89,14 +89,15 @@ pub async fn send_multipart_email(
     recipient_email: String,
     recipient_username: String,
     template_name: &str,
+    li_type: LoginIdentityType,
     redis: &RedisPool,
 ) -> Result<()> {
     let config = get_config()?;
 
-    let mut redis_conn = redis.get().await?;
-
-    let (issued_token, token_ttl) =
-        issue_confirmation_token(user_id, &mut redis_conn, false).await?;
+    let (issued_token, token_ttl) = ConfirmationTokenBuilder::create(user_id, redis)?
+        .add_claim("li_type".to_string(), li_type)?
+        .issue_confirmation_token()
+        .await?;
 
     let web_address = match config.environment {
         Environment::Development => format!("{}:{}", config.server.base_url, config.server.port,),
@@ -104,13 +105,13 @@ pub async fn send_multipart_email(
     };
     let confirmation_link = if template_name == "password_reset_email.html" {
         format!(
-            "{}/users/password/confirm/change_password?token={}", // TODO: Update this route to be the actual one implemented.
-            web_address, issued_token
+            "{}/users/{}/password?token={}", // TODO: Update this route to be the actual one implemented.
+            web_address, user_id, issued_token
         )
     } else {
         format!(
-            "{}/users/register/confirm?token={}",
-            web_address, issued_token
+            "{}/users/{}/verify?token={}",
+            web_address, user_id, issued_token
         )
     };
     let current_date_time = chrono::Utc::now();

@@ -1,5 +1,8 @@
 use crate::{
-    models::{login_identity::NewLoginIdentity, users::*},
+    models::{
+        login_identity::{LoginIdentityType, NewLoginIdentity},
+        users::*,
+    },
     types::{error::ErrorResponse, redis::RedisPool},
     util::{
         email::send_multipart_email,
@@ -103,6 +106,7 @@ async fn add_user_route(
                     li.email,
                     user.username.clone(),
                     "verification_email.html",
+                    LoginIdentityType::Email,
                     &redis,
                 )
                 .await;

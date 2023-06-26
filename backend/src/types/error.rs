@@ -26,7 +26,7 @@ impl ErrorResponse {
         }
     }
 
-    pub fn description<T>(&mut self, content: T) -> &Self
+    pub fn description<T>(&mut self, content: T) -> &mut Self
     where
         T: ToString,
     {
@@ -34,7 +34,7 @@ impl ErrorResponse {
         self
     }
 
-    pub fn field_errors<T>(&mut self, errors: Vec<FieldError>) -> &Self {
+    pub fn field_errors<T>(&mut self, errors: Vec<FieldError>) -> &mut Self {
         self.errors = Some(errors);
         self
     }
