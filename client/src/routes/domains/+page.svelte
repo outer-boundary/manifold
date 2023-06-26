@@ -1,6 +1,9 @@
 <script lang="ts">
-	import { Modal, modalState, openModal, sidebarActions } from "../../stores";
+	import { modalState } from "../../stores/modalState";
+	import { sidebarActions } from "../../stores/sidebarActions";
 	import DomainCard from "./domain-card.svelte";
+	import CreateDomainModal from "./modals/create-domain-modal.svelte";
+	import JoinDomainModal from "./modals/join-domain-modal.svelte";
 
 	const wallpapers = [
 		"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallup.net%2Fwp-content%2Fuploads%2F2016%2F03%2F10%2F343202-landscape-nature.jpg&f=1&nofb=1&ipt=168a2794fc43075e38ccc26608bdb8aaa2e068f2691aa49a3686ca0b34493134&ipo=images",
@@ -79,15 +82,14 @@
 			iconName: "material-symbols:search-rounded",
 			text: "Join Domain",
 			onClick: () => {
-				openModal(Modal.JoinDomain);
+				modalState.set({ component: JoinDomainModal });
 			}
 		},
 		{
 			iconName: "material-symbols:add-rounded",
 			text: "Create Domain",
-
 			onClick: () => {
-				openModal(Modal.CreateDomain);
+				modalState.set({ component: CreateDomainModal });
 			}
 		}
 	]);

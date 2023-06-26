@@ -1,32 +1,21 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
-	import { Modal, ModalState, type ModalStateType, startClosingModal } from "../stores";
-	import { modalState } from "../stores";
-	import CreateDomainModal from "./domains/modals/create-domain-modal.svelte";
-	import JoinDomainModal from "./domains/modals/join-domain-modal.svelte";
-
-	export const modalTransitionTime = 200;
-
-	let curModalState: ModalStateType = { state: ModalState.Closed };
-	const unsubscribe = modalState.subscribe((value) => (curModalState = value));
-	onDestroy(unsubscribe);
+	import { modalState } from "../stores/modalState";
 
 	function deactiveOverlay() {
 		(document.getElementById("overlay") as HTMLElement)?.classList.remove("active");
-		startClosingModal(modalTransitionTime);
+		modalState.set({ component: null });
 	}
 </script>
 
 <div
 	id="overlay"
-	class:active={curModalState.state === ModalState.Open}
+	class:active={$modalState.component}
 	on:click={deactiveOverlay}
 	on:keyup={deactiveOverlay}
+	role="none"
 >
-	{#if curModalState.name === Modal.CreateDomain}
-		<CreateDomainModal />
-	{:else if curModalState.name === Modal.JoinDomain}
-		<JoinDomainModal />
+	{#if $modalState.component}
+		<svelte:component this={$modalState.component} />
 	{/if}
 </div>
 
@@ -38,8 +27,8 @@
 		height: 100vh;
 		position: absolute;
 		background-color: transparent;
-		transition: background-color $modalTransitionTime ease-in-out,
-			backdrop-filter $modalTransitionTime ease-in-out;
+		transition: background-color calc($modalTransitionTime / 2) ease-out,
+			backdrop-filter calc($modalTransitionTime / 2) ease-out;
 		z-index: 100;
 		pointer-events: none;
 

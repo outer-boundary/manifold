@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from "@iconify/svelte";
 	import { goto } from "$app/navigation";
-	import { sidebarActions, type SidebarActions } from "../stores";
+	import { sidebarActions } from "../stores/sidebarActions";
 
 	function toggleHoverEffect(tab: typeof selectedTab) {
 		if (selectedTab !== tab) {
@@ -25,11 +25,6 @@
 	const openWidth = "300px";
 
 	let selectedTab: "domains" | "friends" | "settings" = "domains";
-
-	let actions: SidebarActions[] = [];
-	sidebarActions.subscribe((value) => {
-		actions = value;
-	});
 </script>
 
 <div
@@ -91,7 +86,7 @@
 	</div>
 	<div class="tabsDivider" />
 	<div class="actions">
-		{#each actions as action}
+		{#each $sidebarActions as action}
 			<button class="action" on:click={action.onClick}>
 				<Icon class="actionIcon" icon={action.iconName} />
 				<p class="tabText">{action.text}</p>

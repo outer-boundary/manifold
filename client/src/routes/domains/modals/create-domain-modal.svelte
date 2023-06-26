@@ -3,7 +3,7 @@
 </script>
 
 <Modal>
-	<p style={"color: white"}>Hello World!!!</p>
+	<p style={"color: white"}>Create a domain!!!</p>
 </Modal>
 
 <style>
