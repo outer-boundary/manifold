@@ -99,21 +99,15 @@ pub async fn send_multipart_email(
         .issue_confirmation_token()
         .await?;
 
-    let web_address = match config.environment {
-        Environment::Development => format!("{}:{}", config.server.base_url, config.server.port,),
-        Environment::Production => config.server.base_url,
-    };
     let confirmation_link = if template_name == "password_reset_email.html" {
         format!(
-            "{}/users/{}/password?token={}", // TODO: Update this route to be the actual one implemented.
-            web_address, user_id, issued_token
+            "{}/change-password?token={}",
+            config.client_url, issued_token
         )
     } else {
-        format!(
-            "{}/users/{}/verify?token={}",
-            web_address, user_id, issued_token
-        )
+        format!("{}/verify?token={}", config.client_url, issued_token)
     };
+
     let current_date_time = chrono::Utc::now();
     let dt = current_date_time + chrono::Duration::minutes(token_ttl);
 
