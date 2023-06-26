@@ -1,9 +1,8 @@
+use super::auth::login_identity::{add_login_identity, delete_all_login_identities};
 use crate::models::users::*;
 use color_eyre::{eyre::eyre, Result};
 use sqlx::MySqlPool;
 use uuid::Uuid;
-
-use super::login_identity::{add_login_identity, delete_all_login_identities};
 
 #[tracing::instrument(skip(db_pool))]
 pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {

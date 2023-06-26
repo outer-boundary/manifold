@@ -1,10 +1,10 @@
-use crate::{models::login_identity::*, types::redis::RedisPool};
+use crate::models::login_identity::*;
 use color_eyre::Result;
 use futures::prelude::*;
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
-use super::auth::password::hash_password;
+use super::password::hash_password;
 
 #[tracing::instrument(skip(db_pool))]
 pub async fn get_login_identity(
@@ -103,13 +103,22 @@ pub async fn delete_all_login_identities(user_id: Uuid, db_pool: &MySqlPool) -> 
 
     Ok(())
 }
-
-pub async fn verify_login_identity(
+#[tracing::instrument(skip(db_pool))]
+pub async fn set_login_identity_verified(
     user_id: Uuid,
+    li_type: LoginIdentityType,
     db_pool: &MySqlPool,
-    redis: &RedisPool,
 ) -> Result<()> {
-    // match
+    match li_type {
+        LoginIdentityType::Email => {
+            sqlx::query!(
+                "UPDATE login_identity__email SET verified = true WHERE user_id = ?",
+                user_id
+            )
+            .execute(db_pool)
+            .await?;
+        }
+    }
 
     Ok(())
 }
