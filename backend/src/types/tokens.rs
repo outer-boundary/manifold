@@ -1,7 +1,8 @@
-use serde::{Deserialize, Serialize};
+use pasetors::claims::Claims;
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct ConfirmationToken {
     pub user_id: Uuid,
+    pub claims: Claims,
 }

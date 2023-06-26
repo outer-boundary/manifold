@@ -162,5 +162,8 @@ pub async fn verify_confirmation_token(
     };
 
     redis.del(redis_key.clone()).await?;
-    Ok(ConfirmationToken { user_id })
+    Ok(ConfirmationToken {
+        user_id,
+        claims: claims.clone(),
+    })
 }
