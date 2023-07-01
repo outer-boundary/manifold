@@ -12,14 +12,10 @@ use pasetors::{
 };
 use rand::{rngs::OsRng, RngCore};
 use serde::Serialize;
-use serde_json::Value;
 use uuid::Uuid;
 
 use crate::{
-    types::{
-        redis::{RedisConnection, RedisPool},
-        tokens::ConfirmationToken,
-    },
+    types::{redis::RedisPool, tokens::ConfirmationToken},
     util::configuration::{get_config, SecretConfiguration},
 };
 
@@ -32,7 +28,7 @@ pub struct ConfirmationTokenBuilder<'a> {
     redis: &'a RedisPool,
     session_key_prefix: String,
     ttl: chrono::Duration,
-    claims: HashMap<String, Value>,
+    claims: HashMap<String, String>,
 }
 
 impl<'a> ConfirmationTokenBuilder<'a> {
@@ -60,7 +56,7 @@ impl<'a> ConfirmationTokenBuilder<'a> {
 
     #[tracing::instrument(skip(self, value))]
     pub fn add_claim(&mut self, claim: String, value: impl Serialize) -> Result<&mut Self> {
-        self.claims.insert(claim, serde_json::to_value(value)?);
+        self.claims.insert(claim, serde_json::to_string(&value)?);
         Ok(self)
     }
 
@@ -107,12 +103,13 @@ impl<'a> ConfirmationTokenBuilder<'a> {
 }
 
 #[tracing::instrument(skip(redis))]
-pub async fn verify_confirmation_token(
+pub async fn verify_confirmation_token<'a>(
     token: String,
-    redis: &mut RedisConnection,
+    redis: &'a RedisPool,
     is_password: bool,
 ) -> Result<ConfirmationToken> {
     let config = get_config()?;
+    let mut redis_conn = redis.get().await?;
     let sk = SymmetricKey::<V4>::from(config.secret.secret_key.as_bytes())?;
 
     let validation_rules = ClaimsValidationRules::new();
@@ -153,7 +150,7 @@ pub async fn verify_confirmation_token(
         format!("{}_{}", SESSION_KEY_PREFIX, session_key)
     };
 
-    if redis
+    if redis_conn
         .get::<_, Option<String>>(redis_key.clone())
         .await?
         .is_none()
@@ -161,7 +158,7 @@ pub async fn verify_confirmation_token(
         return Err(eyre!("Could not find redis key"));
     };
 
-    redis.del(redis_key.clone()).await?;
+    redis_conn.del(redis_key.clone()).await?;
     Ok(ConfirmationToken {
         user_id,
         claims: claims.clone(),

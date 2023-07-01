@@ -1,10 +1,10 @@
-use crate::models::login_identity::*;
-use color_eyre::Result;
+use crate::{models::login_identity::*, types::redis::RedisPool};
+use color_eyre::{eyre::eyre, Result};
 use futures::prelude::*;
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
-use super::password::hash_password;
+use super::{password::hash_password, tokens::verify_confirmation_token};
 
 #[tracing::instrument(skip(db_pool))]
 pub async fn get_login_identity(
@@ -103,6 +103,38 @@ pub async fn delete_all_login_identities(user_id: Uuid, db_pool: &MySqlPool) -> 
 
     Ok(())
 }
+
+#[tracing::instrument(skip(db_pool, redis))]
+pub async fn verify_login_identity(
+    user_id: Uuid,
+    token: String,
+    db_pool: &MySqlPool,
+    redis: &RedisPool,
+) -> Result<()> {
+    let token = verify_confirmation_token(token, redis, false).await?;
+
+    if user_id != token.user_id {
+        return Err(eyre!(
+            "User id '{}' contained in confirmation token did not match the id for the user to verify: '{}'", token.user_id, user_id
+        ));
+    }
+
+    let li_type_claim = token
+        .claims
+        .get_claim("li_type")
+        .ok_or(eyre!("No login identity type claim in confirmation token"))?;
+
+    let li_type_str = li_type_claim.as_str().ok_or(eyre!(
+        "Login identity claim data type was not type 'string'"
+    ))?;
+
+    let li_type = serde_json::from_str::<LoginIdentityType>(li_type_str)?;
+
+    set_login_identity_verified(user_id, li_type, db_pool).await?;
+
+    Ok(())
+}
+
 #[tracing::instrument(skip(db_pool))]
 pub async fn set_login_identity_verified(
     user_id: Uuid,

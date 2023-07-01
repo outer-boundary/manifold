@@ -5,12 +5,13 @@ use crate::{
     },
     types::{error::ErrorResponse, redis::RedisPool},
     util::{
+        auth::login_identity::verify_login_identity,
         email::send_multipart_email,
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},
     },
 };
-use actix_web::{delete, get, http::header, patch, post, web, HttpRequest, HttpResponse};
+use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse};
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
@@ -18,7 +19,8 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
     cfg.service(get_users_route)
         .service(get_user_route)
         .service(add_user_route)
-        .service(delete_user_route);
+        .service(delete_user_route)
+        .service(verify_user_li_route);
 }
 
 #[tracing::instrument(skip(pool))]
@@ -206,14 +208,42 @@ async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> H
     }
 }
 
-#[tracing::instrument(skip(pool))]
-#[patch("/{id}/verify")]
+#[tracing::instrument(skip(pool, redis, token))]
+#[post("/{id}/verify")]
 async fn verify_user_li_route(
     pool: web::Data<MySqlPool>,
+    redis: web::Data<RedisPool>,
     id: web::Path<Uuid>,
     token: web::Json<String>,
 ) -> HttpResponse {
-    tracing::info!("token: {}", token.into_inner());
+    let user_id = id.into_inner();
 
-    HttpResponse::NoContent().finish()
+    tracing::debug!("Verifying login identity for user with id '{}'...", user_id);
+
+    match verify_login_identity(user_id, token.into_inner(), &pool, &redis).await {
+        Ok(_) => {
+            tracing::info!(
+                "Successfully verified login identity for user with id '{}'.",
+                user_id
+            );
+            HttpResponse::NoContent().finish()
+        }
+        Err(err) => {
+            tracing::error!(
+                "Failed while trying to verify login identity for user with id '{}'. {}",
+                user_id,
+                err
+            );
+            HttpResponse::InternalServerError().json(
+                ErrorResponse::new(
+                    0,
+                    format!(
+                        "Failed while trying to verify confirmation token for user with id '{}'",
+                        user_id
+                    ),
+                )
+                .description(err),
+            )
+        }
+    }
 }
