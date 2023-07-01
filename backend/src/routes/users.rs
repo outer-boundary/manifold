@@ -209,19 +209,18 @@ async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> H
 }
 
 #[tracing::instrument(skip(pool, redis, token))]
-#[post("/{id}/verify")]
+#[post("/verify")]
 async fn verify_user_li_route(
     pool: web::Data<MySqlPool>,
     redis: web::Data<RedisPool>,
-    id: web::Path<Uuid>,
     token: web::Json<String>,
 ) -> HttpResponse {
-    let user_id = id.into_inner();
+    tracing::debug!("Verifying login identity...");
 
-    tracing::debug!("Verifying login identity for user with id '{}'...", user_id);
+    let result = verify_login_identity(token.into_inner(), &pool, &redis).await;
 
-    match verify_login_identity(user_id, token.into_inner(), &pool, &redis).await {
-        Ok(_) => {
+    match result {
+        Ok(user_id) => {
             tracing::info!(
                 "Successfully verified login identity for user with id '{}'.",
                 user_id
@@ -229,20 +228,10 @@ async fn verify_user_li_route(
             HttpResponse::NoContent().finish()
         }
         Err(err) => {
-            tracing::error!(
-                "Failed while trying to verify login identity for user with id '{}'. {}",
-                user_id,
-                err
-            );
+            tracing::error!("Failed while trying to verify login identity. {}", err);
             HttpResponse::InternalServerError().json(
-                ErrorResponse::new(
-                    0,
-                    format!(
-                        "Failed while trying to verify confirmation token for user with id '{}'",
-                        user_id
-                    ),
-                )
-                .description(err),
+                ErrorResponse::new(0, "Failed while trying to verify login identity")
+                    .description(err),
             )
         }
     }

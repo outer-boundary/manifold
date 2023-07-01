@@ -106,18 +106,11 @@ pub async fn delete_all_login_identities(user_id: Uuid, db_pool: &MySqlPool) -> 
 
 #[tracing::instrument(skip(db_pool, redis))]
 pub async fn verify_login_identity(
-    user_id: Uuid,
     token: String,
     db_pool: &MySqlPool,
     redis: &RedisPool,
-) -> Result<()> {
+) -> Result<Uuid> {
     let token = verify_confirmation_token(token, redis, false).await?;
-
-    if user_id != token.user_id {
-        return Err(eyre!(
-            "User id '{}' contained in confirmation token did not match the id for the user to verify: '{}'", token.user_id, user_id
-        ));
-    }
 
     let li_type_claim = token
         .claims
@@ -130,9 +123,9 @@ pub async fn verify_login_identity(
 
     let li_type = serde_json::from_str::<LoginIdentityType>(li_type_str)?;
 
-    set_login_identity_verified(user_id, li_type, db_pool).await?;
+    set_login_identity_verified(token.user_id, li_type, db_pool).await?;
 
-    Ok(())
+    Ok(token.user_id)
 }
 
 #[tracing::instrument(skip(db_pool))]
