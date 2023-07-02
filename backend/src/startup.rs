@@ -24,15 +24,12 @@ impl Application {
             get_connection_pool(&config.database).await
         };
 
-        sqlx::migrate!()
-            .run(&connection_pool)
-            .await
-            .expect("Failed to migrate the database");
+        sqlx::migrate!().run(&connection_pool).await?;
 
         let address = format!("{}:{}", config.server.host, config.server.port);
 
         let listener = TcpListener::bind(&address)?;
-        let port = listener.local_addr().unwrap().port();
+        let port = listener.local_addr()?.port();
         let server = run(listener, connection_pool, config).await?;
 
         Ok(Self { port, server })
@@ -53,9 +50,7 @@ pub async fn get_connection_pool(settings: &DatabaseConfiguration) -> MySqlPool 
 
 async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -> Result<Server> {
     let cfg = deadpool_redis::Config::from_url(config.redis.url);
-    let redis_pool = cfg
-        .create_pool(Some(deadpool_redis::Runtime::Tokio1))
-        .expect("Cannot create deadpool redis");
+    let redis_pool = cfg.create_pool(Some(deadpool_redis::Runtime::Tokio1))?;
 
     let server = HttpServer::new(move || {
         App::new()
