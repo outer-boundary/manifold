@@ -11,18 +11,18 @@ pub async fn get_login_identity(
     user_id: Uuid,
     li_type: LoginIdentityType,
     db_pool: &MySqlPool,
-) -> Result<Option<LoginIdentity>> {
+) -> Result<Option<LoginIdentityDB>> {
     let li = match li_type {
         LoginIdentityType::Email => {
             let li = sqlx::query_as!(
-                LIEmail,
+                LIEmailDB,
                 "SELECT user_id AS `user_id: Uuid`, email, password_hash, salt, created_at, updated_at FROM login_identity__email WHERE user_id = ?",
                 user_id
             )
             .fetch_optional(db_pool)
             .await?;
 
-            li.map(LoginIdentity::Email)
+            li.map(LoginIdentityDB::Email)
         }
     };
 
@@ -33,10 +33,10 @@ pub async fn get_login_identity(
 pub async fn get_login_identities(
     user_id: Uuid,
     db_pool: &MySqlPool,
-) -> Result<Vec<LoginIdentity>> {
-    let all_li: Vec<LoginIdentity> = futures::stream::iter(LoginIdentityType::all())
+) -> Result<Vec<LoginIdentityDB>> {
+    let all_li: Vec<LoginIdentityDB> = futures::stream::iter(LoginIdentityType::all())
         .then(|li_type| async move { get_login_identity(user_id, li_type.clone(), db_pool).await })
-        .try_collect::<Vec<Option<LoginIdentity>>>()
+        .try_collect::<Vec<Option<LoginIdentityDB>>>()
         .await?
         .into_iter()
         .flatten()
@@ -48,11 +48,11 @@ pub async fn get_login_identities(
 #[tracing::instrument(skip(db_pool))]
 pub async fn add_login_identity(
     user_id: Uuid,
-    new_li: NewLoginIdentity,
+    new_li: LoginIdentity,
     db_pool: &MySqlPool,
 ) -> Result<()> {
     match new_li {
-        NewLoginIdentity::Email(li) => {
+        LoginIdentity::Email(li) => {
             let (password_hash, salt) = hash_password(li.password).await?;
             let salt = hex::encode(salt.as_bytes());
 

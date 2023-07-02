@@ -16,13 +16,13 @@ impl LoginIdentityType {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum LoginIdentity {
-    Email(LIEmail),
+pub enum LoginIdentityDB {
+    Email(LIEmailDB),
 }
 
-// Model representing the data sent from the client to create a new user.
+// Model representing the data stored in the db for a login identity using email.
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct LIEmail {
+pub struct LIEmailDB {
     pub user_id: Uuid,
 
     pub email: String,
@@ -33,16 +33,16 @@ pub struct LIEmail {
     pub updated_at: NaiveDateTime,
 }
 
-// Enum representing all possible login identities that a user can use when first creating their account.
+// Enum representing all possible login identities that a user can use when authenticating or creating a new account.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum NewLoginIdentity {
-    Email(NewLIEmail),
+pub enum LoginIdentity {
+    Email(LIEmail),
 }
 
-// Model representing the data sent from the client to create a new user.
+// Model representing the data sent from the client to log in or to create a new user.
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct NewLIEmail {
+pub struct LIEmail {
     pub email: String,
     pub password: String,
 }
