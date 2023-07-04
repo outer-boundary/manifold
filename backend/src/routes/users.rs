@@ -29,12 +29,12 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
         .service(user_logout_route);
 }
 
-#[tracing::instrument(skip(pool))]
+#[tracing::instrument(skip(db_pool))]
 #[get("")]
-async fn get_users_route(pool: web::Data<MySqlPool>) -> HttpResponse {
+async fn get_users_route(db_pool: web::Data<MySqlPool>) -> HttpResponse {
     tracing::debug!("Requesting all users...");
 
-    let users = get_users(&pool).await;
+    let users = get_users(&db_pool).await;
 
     match users {
         Ok(users) => {
@@ -51,14 +51,14 @@ async fn get_users_route(pool: web::Data<MySqlPool>) -> HttpResponse {
     }
 }
 
-#[tracing::instrument(skip(pool))]
+#[tracing::instrument(skip(db_pool))]
 #[get("/{id}")]
-async fn get_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> HttpResponse {
+async fn get_user_route(db_pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> HttpResponse {
     let user_id = id.into_inner();
 
     tracing::debug!("Requesting user with id '{}'...", user_id);
 
-    let user = get_user(user_id, &pool).await;
+    let user = get_user(user_id, &db_pool).await;
 
     match user {
         Ok(Some(user)) => {
@@ -92,10 +92,10 @@ async fn get_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> Http
     }
 }
 
-#[tracing::instrument(skip(pool, redis, request))]
+#[tracing::instrument(skip(db_pool, redis, request))]
 #[post("")]
 async fn add_user_route(
-    pool: web::Data<MySqlPool>,
+    db_pool: web::Data<MySqlPool>,
     redis: web::Data<RedisPool>,
     request: HttpRequest,
     new_user: web::Json<NewUser>,
@@ -103,7 +103,7 @@ async fn add_user_route(
     tracing::debug!("Creating new user...");
 
     // Create the user
-    let user = add_user(new_user.clone(), &pool).await;
+    let user = add_user(new_user.clone(), &db_pool).await;
 
     match user {
         Ok(user) => match new_user.clone().identity {
@@ -159,18 +159,18 @@ async fn add_user_route(
     }
 }
 
-#[tracing::instrument(skip(pool))]
+#[tracing::instrument(skip(db_pool))]
 #[delete("/{id}")]
-async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> HttpResponse {
+async fn delete_user_route(db_pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> HttpResponse {
     let user_id = id.into_inner();
 
     tracing::debug!("Deleting user with id '{}'...", user_id);
 
-    let user = get_user(user_id, &pool).await;
+    let user = get_user(user_id, &db_pool).await;
 
     match user {
         Ok(Some(_)) => {
-            let result = delete_user(user_id, &pool).await;
+            let result = delete_user(user_id, &db_pool).await;
 
             match result {
                 Ok(_) => {
@@ -214,16 +214,16 @@ async fn delete_user_route(pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> H
     }
 }
 
-#[tracing::instrument(skip(pool, redis, token))]
+#[tracing::instrument(skip(db_pool, redis, token))]
 #[post("/verify")]
 async fn verify_user_li_route(
-    pool: web::Data<MySqlPool>,
+    db_pool: web::Data<MySqlPool>,
     redis: web::Data<RedisPool>,
     token: web::Json<String>,
 ) -> HttpResponse {
     tracing::debug!("Verifying login identity...");
 
-    let result = verify_login_identity(token.into_inner(), &pool, &redis).await;
+    let result = verify_login_identity(token.into_inner(), &db_pool, &redis).await;
 
     match result {
         Ok(user_id) => {
@@ -243,16 +243,16 @@ async fn verify_user_li_route(
     }
 }
 
-#[tracing::instrument(skip(login_identity, pool, session))]
+#[tracing::instrument(skip(login_identity, db_pool, session))]
 #[post("/login")]
 async fn user_login_route(
     login_identity: web::Json<LoginIdentity>,
-    pool: web::Data<MySqlPool>,
+    db_pool: web::Data<MySqlPool>,
     session: actix_session::Session,
 ) -> HttpResponse {
     tracing::debug!("Logging in user...");
 
-    let login_result = login_user(login_identity.into_inner(), &pool, &session).await;
+    let login_result = login_user(login_identity.into_inner(), &db_pool, &session).await;
 
     match login_result {
         Ok((Some(user_id), true)) => {

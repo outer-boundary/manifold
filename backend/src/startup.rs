@@ -20,19 +20,19 @@ pub struct Application {
 
 impl Application {
     pub async fn build(config: Configuration, test_pool: Option<MySqlPool>) -> Result<Self> {
-        let connection_pool = if let Some(pool) = test_pool {
-            pool
+        let db_pool = if let Some(db_pool) = test_pool {
+            db_pool
         } else {
             get_connection_pool(&config.database).await
         };
 
-        sqlx::migrate!().run(&connection_pool).await?;
+        sqlx::migrate!().run(&db_pool).await?;
 
         let address = format!("{}:{}", config.server.host, config.server.port);
 
         let listener = TcpListener::bind(&address)?;
         let port = listener.local_addr()?.port();
-        let server = run(listener, connection_pool, config).await?;
+        let server = run(listener, db_pool, config).await?;
 
         Ok(Self { port, server })
     }
