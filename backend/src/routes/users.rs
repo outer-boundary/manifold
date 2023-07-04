@@ -238,7 +238,7 @@ async fn verify_user_li_route(
     }
 }
 
-#[tracing::instrument(skip(pool, session))]
+#[tracing::instrument(skip(login_identity, pool, session))]
 #[post("/login")]
 async fn user_login_route(
     login_identity: web::Json<LoginIdentity>,
