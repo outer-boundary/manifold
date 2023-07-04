@@ -12,28 +12,29 @@ use super::{
 pub async fn login_user(
     login_identity: LoginIdentity,
     db_pool: &MySqlPool,
-) -> Result<(Uuid, bool)> {
-    let user_id = get_user_id_from_login_identity(login_identity.clone(), db_pool)
-        .await?
-        .ok_or(eyre!(
-            "Could not find an existing login identity that matched"
-        ))?;
+) -> Result<(Option<Uuid>, bool)> {
+    let user_id = get_user_id_from_login_identity(login_identity.clone(), db_pool).await?;
 
-    let li_db = get_login_identity(user_id, login_identity.get_type(), db_pool)
-        .await?
-        .ok_or(eyre!("Could not get the login identity data from the db"))?;
+    match user_id {
+        Some(user_id) => {
+            let li_db = get_login_identity(user_id, login_identity.get_type(), db_pool)
+                .await?
+                .ok_or(eyre!("Could not get the login identity data from the db"))?;
 
-    let login_result = match login_identity {
-        LoginIdentity::Email(li) => {
-            if let LoginIdentityDB::Email(li_db) = li_db {
-                verify_password_hash(li_db.password_hash, li.password).await
-            } else {
-                Err(eyre!(
-                    "Incorrect db login identity type returned for email login identity"
-                ))
-            }
+            let login_result = match login_identity {
+                LoginIdentity::Email(li) => {
+                    if let LoginIdentityDB::Email(li_db) = li_db {
+                        verify_password_hash(li_db.password_hash, li.password).await
+                    } else {
+                        Err(eyre!(
+                            "Incorrect db login identity type returned for email login identity"
+                        ))
+                    }
+                }
+            }?;
+
+            Ok((Some(user_id), login_result))
         }
-    }?;
-
-    Ok((user_id, login_result))
+        None => Ok((None, false)),
+    }
 }

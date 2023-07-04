@@ -249,18 +249,32 @@ async fn user_login_route(
     let login_result = login_user(login_identity.into_inner(), &pool).await;
 
     match login_result {
-        Ok((user_id, true)) => {
+        Ok((Some(user_id), true)) => {
             tracing::info!("Successfully logged in user with id '{}'.", user_id);
             HttpResponse::NoContent().finish()
         }
         Ok((user_id, false)) => {
-            tracing::warn!("Failed login attempt for user with id '{}'.", user_id);
+            if let Some(user_id) = user_id {
+                tracing::warn!("Failed login attempt for user with id '{}'.", user_id);
+            } else {
+                tracing::warn!("Failed login attempt.");
+            }
+
             HttpResponse::Unauthorized().finish()
         }
         Err(err) => {
             tracing::error!("Failed while trying to login user. {}", err);
             HttpResponse::InternalServerError()
                 .json(ErrorResponse::new(0, "Failed while trying to login user").description(err))
+        }
+        // The below arm should not be possible. We should only return true if we are able to find a matching user
+        // for the login identity. This means that we will always have the user id to return if the login is successful.
+        Ok((None, true)) => {
+            tracing::error!("Failed while trying to login user. Unexpected value returned.");
+            HttpResponse::InternalServerError().json(
+                ErrorResponse::new(0, "Failed while trying to login user")
+                    .description("Unexpected value returned"),
+            )
         }
     }
 }
