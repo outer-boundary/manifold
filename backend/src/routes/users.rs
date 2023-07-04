@@ -5,7 +5,11 @@ use crate::{
     },
     types::{error::ErrorResponse, redis::RedisPool},
     util::{
-        auth::{login::login_user, login_identity::verify_login_identity},
+        auth::{
+            login::{login_user, logout_user},
+            login_identity::verify_login_identity,
+            session::get_user_id_from_session,
+        },
         email::send_multipart_email,
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},
@@ -21,7 +25,8 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
         .service(add_user_route)
         .service(delete_user_route)
         .service(verify_user_li_route)
-        .service(user_login_route);
+        .service(user_login_route)
+        .service(user_logout_route);
 }
 
 #[tracing::instrument(skip(pool))]
@@ -276,6 +281,30 @@ async fn user_login_route(
                 ErrorResponse::new(0, "Failed while trying to login user")
                     .description("Unexpected value returned"),
             )
+        }
+    }
+}
+
+#[tracing::instrument(skip(session))]
+#[post("/logout")]
+async fn user_logout_route(session: actix_session::Session) -> HttpResponse {
+    tracing::debug!("Logging out user...");
+
+    let user_id = get_user_id_from_session(&session);
+
+    let result = logout_user(&session);
+
+    match result {
+        Ok(_) => {
+            if let Ok(Some(user_id)) = user_id {
+                tracing::info!("Successfully logged out user with id '{}'.", user_id)
+            };
+            HttpResponse::NoContent().finish()
+        }
+        Err(err) => {
+            tracing::error!("Failed while trying to logout user. {}", err);
+            HttpResponse::InternalServerError()
+                .json(ErrorResponse::new(0, "Failed while trying to logout user").description(err))
         }
     }
 }
