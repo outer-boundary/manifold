@@ -44,9 +44,9 @@ async fn get_users_route(db_pool: web::Data<MySqlPool>) -> HttpResponse {
 }
 
 #[tracing::instrument(skip(db_pool))]
-#[get("/{id}")]
-async fn get_user_route(db_pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> HttpResponse {
-    let user_id = id.into_inner();
+#[get("/{user_id}")]
+async fn get_user_route(db_pool: web::Data<MySqlPool>, user_id: web::Path<Uuid>) -> HttpResponse {
+    let user_id = user_id.into_inner();
 
     tracing::debug!("Requesting user with id '{}'...", user_id);
 
@@ -152,9 +152,12 @@ async fn add_user_route(
 }
 
 #[tracing::instrument(skip(db_pool))]
-#[delete("/{id}")]
-async fn delete_user_route(db_pool: web::Data<MySqlPool>, id: web::Path<Uuid>) -> HttpResponse {
-    let user_id = id.into_inner();
+#[delete("/{user_id}")]
+async fn delete_user_route(
+    db_pool: web::Data<MySqlPool>,
+    user_id: web::Path<Uuid>,
+) -> HttpResponse {
+    let user_id = user_id.into_inner();
 
     tracing::debug!("Deleting user with id '{}'...", user_id);
 
