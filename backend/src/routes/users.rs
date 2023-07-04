@@ -238,15 +238,16 @@ async fn verify_user_li_route(
     }
 }
 
-#[tracing::instrument(skip(pool))]
+#[tracing::instrument(skip(pool, session))]
 #[post("/login")]
 async fn user_login_route(
     login_identity: web::Json<LoginIdentity>,
     pool: web::Data<MySqlPool>,
+    session: actix_session::Session,
 ) -> HttpResponse {
     tracing::debug!("Logging in user...");
 
-    let login_result = login_user(login_identity.into_inner(), &pool).await;
+    let login_result = login_user(login_identity.into_inner(), &pool, &session).await;
 
     match login_result {
         Ok((Some(user_id), true)) => {

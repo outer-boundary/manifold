@@ -26,6 +26,12 @@ impl LoginIdentityDB {
             LoginIdentityDB::Email(_) => LoginIdentityType::Email,
         }
     }
+
+    pub fn identifier(&self) -> String {
+        match self {
+            LoginIdentityDB::Email(li) => li.email.clone(),
+        }
+    }
 }
 
 // Model representing an email login identity stored in the login_identity__email table.
@@ -54,6 +60,12 @@ impl LoginIdentity {
     pub fn get_type(&self) -> LoginIdentityType {
         match self {
             LoginIdentity::Email(_) => LoginIdentityType::Email,
+        }
+    }
+
+    pub fn identifier(&self) -> String {
+        match self {
+            LoginIdentity::Email(li) => li.email.clone(),
         }
     }
 }
