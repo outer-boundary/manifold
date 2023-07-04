@@ -16,7 +16,7 @@ pub async fn get_login_identity(
         LoginIdentityType::Email => {
             let li = sqlx::query_as!(
                 LIEmailDB,
-                "SELECT user_id AS `user_id: Uuid`, email, password_hash, salt, created_at, updated_at FROM login_identity__email WHERE user_id = ?",
+                "SELECT user_id AS `user_id: Uuid`, email, password_hash, salt, verified AS `verified: bool`, created_at, updated_at FROM login_identity__email WHERE user_id = ?",
                 user_id
             )
             .fetch_optional(db_pool)
@@ -146,4 +146,22 @@ pub async fn set_login_identity_verified(
     }
 
     Ok(())
+}
+
+#[tracing::instrument(skip(db_pool))]
+pub async fn get_user_id_from_login_identity(
+    login_identity: LoginIdentity,
+    db_pool: &MySqlPool,
+) -> Result<Option<Uuid>> {
+    let user_id = match login_identity {
+        LoginIdentity::Email(li) => sqlx::query!(
+            "SELECT user_id AS `user_id: Uuid` FROM login_identity__email WHERE email = ?",
+            li.email
+        )
+        .fetch_optional(db_pool)
+        .await?
+        .map(|record| record.user_id),
+    };
+
+    Ok(user_id)
 }

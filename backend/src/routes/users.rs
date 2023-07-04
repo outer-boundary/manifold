@@ -5,7 +5,7 @@ use crate::{
     },
     types::{error::ErrorResponse, redis::RedisPool},
     util::{
-        auth::login_identity::verify_login_identity,
+        auth::{login::login_user, login_identity::verify_login_identity},
         email::send_multipart_email,
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},
@@ -20,7 +20,8 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
         .service(get_user_route)
         .service(add_user_route)
         .service(delete_user_route)
-        .service(verify_user_li_route);
+        .service(verify_user_li_route)
+        .service(user_login_route);
 }
 
 #[tracing::instrument(skip(pool))]
@@ -233,6 +234,33 @@ async fn verify_user_li_route(
                 ErrorResponse::new(0, "Failed while trying to verify login identity")
                     .description(err),
             )
+        }
+    }
+}
+
+#[tracing::instrument(skip(pool))]
+#[post("/login")]
+async fn user_login_route(
+    login_identity: web::Json<LoginIdentity>,
+    pool: web::Data<MySqlPool>,
+) -> HttpResponse {
+    tracing::debug!("Logging in user...");
+
+    let login_result = login_user(login_identity.into_inner(), &pool).await;
+
+    match login_result {
+        Ok((user_id, true)) => {
+            tracing::info!("Successfully logged in user with id '{}'.", user_id);
+            HttpResponse::NoContent().finish()
+        }
+        Ok((user_id, false)) => {
+            tracing::warn!("Failed login attempt for user with id '{}'.", user_id);
+            HttpResponse::Unauthorized().finish()
+        }
+        Err(err) => {
+            tracing::error!("Failed while trying to login user. {}", err);
+            HttpResponse::InternalServerError()
+                .json(ErrorResponse::new(0, "Failed while trying to login user").description(err))
         }
     }
 }
