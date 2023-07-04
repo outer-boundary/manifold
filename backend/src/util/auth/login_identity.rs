@@ -11,18 +11,18 @@ pub async fn get_login_identity(
     user_id: Uuid,
     li_type: LoginIdentityType,
     db_pool: &MySqlPool,
-) -> Result<Option<LoginIdentityDB>> {
+) -> Result<Option<LoginIdentity>> {
     let li = match li_type {
         LoginIdentityType::Email => {
             let li = sqlx::query_as!(
-                LIEmailDB,
+                LIEmail,
                 "SELECT user_id AS `user_id: Uuid`, email, password_hash, salt, verified AS `verified: bool`, created_at, updated_at FROM login_identity__email WHERE user_id = ?",
                 user_id
             )
             .fetch_optional(db_pool)
             .await?;
 
-            li.map(LoginIdentityDB::Email)
+            li.map(LoginIdentity::Email)
         }
     };
 
@@ -33,10 +33,10 @@ pub async fn get_login_identity(
 pub async fn get_login_identities(
     user_id: Uuid,
     db_pool: &MySqlPool,
-) -> Result<Vec<LoginIdentityDB>> {
-    let all_li: Vec<LoginIdentityDB> = futures::stream::iter(LoginIdentityType::all())
+) -> Result<Vec<LoginIdentity>> {
+    let all_li: Vec<LoginIdentity> = futures::stream::iter(LoginIdentityType::all())
         .then(|li_type| async move { get_login_identity(user_id, li_type.clone(), db_pool).await })
-        .try_collect::<Vec<Option<LoginIdentityDB>>>()
+        .try_collect::<Vec<Option<LoginIdentity>>>()
         .await?
         .into_iter()
         .flatten()
@@ -48,11 +48,11 @@ pub async fn get_login_identities(
 #[tracing::instrument(skip(db_pool))]
 pub async fn add_login_identity(
     user_id: Uuid,
-    new_li: LoginIdentity,
+    new_li: ClientLoginIdentity,
     db_pool: &MySqlPool,
 ) -> Result<()> {
     match new_li {
-        LoginIdentity::Email(li) => {
+        ClientLoginIdentity::Email(li) => {
             let (password_hash, salt) = hash_password(li.password).await?;
             let salt = hex::encode(salt.as_bytes());
 
@@ -150,11 +150,11 @@ pub async fn set_login_identity_verified(
 
 #[tracing::instrument(skip(db_pool))]
 pub async fn get_user_id_from_login_identity(
-    login_identity: LoginIdentity,
+    login_identity: ClientLoginIdentity,
     db_pool: &MySqlPool,
 ) -> Result<Option<Uuid>> {
     let user_id = match login_identity {
-        LoginIdentity::Email(li) => sqlx::query!(
+        ClientLoginIdentity::Email(li) => sqlx::query!(
             "SELECT user_id AS `user_id: Uuid` FROM login_identity__email WHERE email = ?",
             li.email
         )

@@ -1,17 +1,16 @@
 use super::{
     login_identity::{get_login_identity, get_user_id_from_login_identity},
-    password::verify_password_hash, session::create_session_for_user,
+    password::verify_password_hash,
+    session::create_session_for_user,
 };
-use crate::models::login_identity::{LoginIdentity, LoginIdentityDB};
+use crate::models::login_identity::{ClientLoginIdentity, LoginIdentity};
 use color_eyre::{eyre::eyre, Result};
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
-
-
 #[tracing::instrument(skip(login_identity, db_pool, session))]
 pub async fn login_user(
-    login_identity: LoginIdentity,
+    login_identity: ClientLoginIdentity,
     db_pool: &MySqlPool,
     session: &actix_session::Session,
 ) -> Result<(Option<Uuid>, bool)> {
@@ -24,8 +23,8 @@ pub async fn login_user(
                 .ok_or(eyre!("Could not get the login identity data from the db"))?;
 
             let is_login_successful = match login_identity.clone() {
-                LoginIdentity::Email(li) => {
-                    if let LoginIdentityDB::Email(li_db) = li_db {
+                ClientLoginIdentity::Email(li) => {
+                    if let LoginIdentity::Email(li_db) = li_db {
                         verify_password_hash(li_db.password_hash, li.password).await
                     } else {
                         Err(eyre!(

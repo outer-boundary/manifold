@@ -1,5 +1,5 @@
 use crate::{
-    models::login_identity::LoginIdentity,
+    models::login_identity::ClientLoginIdentity,
     types::{error::ErrorResponse, redis::RedisPool},
     util::auth::{
         login::{login_user, logout_user},
@@ -48,7 +48,7 @@ async fn verify_route(
 #[tracing::instrument(skip(login_identity, db_pool, session))]
 #[post("/login")]
 async fn login_route(
-    login_identity: web::Json<LoginIdentity>,
+    login_identity: web::Json<ClientLoginIdentity>,
     db_pool: web::Data<MySqlPool>,
     session: actix_session::Session,
 ) -> HttpResponse {

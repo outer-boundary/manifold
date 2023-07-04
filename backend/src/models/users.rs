@@ -1,4 +1,4 @@
-use super::login_identity::LoginIdentity;
+use super::login_identity::ClientLoginIdentity;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -20,5 +20,5 @@ pub struct User {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NewUser {
     pub username: String,
-    pub identity: LoginIdentity,
+    pub identity: ClientLoginIdentity,
 }

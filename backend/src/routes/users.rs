@@ -1,6 +1,6 @@
 use crate::{
     models::{
-        login_identity::{LoginIdentity, LoginIdentityType},
+        login_identity::{ClientLoginIdentity, LoginIdentityType},
         users::*,
     },
     types::{error::ErrorResponse, redis::RedisPool},
@@ -99,7 +99,7 @@ async fn add_user_route(
 
     match user {
         Ok(user) => match new_user.clone().identity {
-            LoginIdentity::Email(li) => {
+            ClientLoginIdentity::Email(li) => {
                 let result = send_multipart_email(
                     "Manifold Account Verification".to_string(),
                     user.id,
