@@ -3,7 +3,6 @@ CREATE TABLE users (
   id binary(16) PRIMARY KEY NOT NULL,
 
   username varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
-  display_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   first_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   last_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
 
