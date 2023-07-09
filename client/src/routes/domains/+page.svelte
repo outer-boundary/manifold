@@ -96,7 +96,7 @@
 </script>
 
 <div class="domains">
-	<div class="favouriteDomainsContainer">
+	<div class="favouriteDomainsContainer domainsContainer">
 		<p class="title">Favourites</p>
 		<div class="favouriteDomains" on:scroll={(e) => manageFavouriteDomainsFade(e)}>
 			<div class="favouriteDomainsLeftFade fade" />
@@ -112,7 +112,7 @@
 		</div>
 	</div>
 
-	<div class="allDomainsContainer">
+	<div class="allDomainsContainer domainsContainer">
 		<p class="title">All</p>
 		<div class="allDomains" on:scroll={(e) => manageAllDomainsFade(e)}>
 			<div class="allDomainsTopFade fade" />
@@ -143,13 +143,29 @@
 		overflow: hidden;
 	}
 
-	.favouriteDomainsContainer {
+	.domainsContainer {
 		width: 100%;
-		height: 40%;
 		display: flex;
 		flex-direction: column;
-		margin-bottom: 60px;
 		position: relative;
+
+		&::-webkit-scrollbar-track {
+			background: transparent;
+		}
+		::-webkit-scrollbar-thumb {
+			background-color: rgba(155, 155, 155, 0.5);
+			border-radius: 20px;
+			border: transparent;
+		}
+	}
+
+	.favouriteDomainsContainer {
+		height: 40%;
+		margin-bottom: 60px;
+
+		::-webkit-scrollbar {
+			height: 8px;
+		}
 	}
 
 	.title {
@@ -192,12 +208,12 @@
 	}
 
 	.allDomainsContainer {
-		width: 100%;
 		height: 100%;
-		display: flex;
-		flex-direction: column;
 		overflow: hidden;
-		position: relative;
+
+		::-webkit-scrollbar {
+			width: 8px;
+		}
 
 		& .fade {
 			width: 100%;
