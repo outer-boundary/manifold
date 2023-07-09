@@ -1,9 +1,12 @@
 <script>
+	import ModalPage from "../../../components/modal-page.svelte";
 	import Modal from "../../../components/modal.svelte";
+
+	const pageStyle = "display: flex; flex-direction: column;";
 </script>
 
-<Modal>
-	<div class="modal">
+<Modal width={500}>
+	<ModalPage style={pageStyle}>
 		<p class="title">Create Domain</p>
 		<p class="description">
 			This is where you can create a new domain. Make sure to pick a memorable name!
@@ -18,6 +21,8 @@
 				<input type="text" id="nameInput" />
 			</div>
 		</div>
+	</ModalPage>
+	<ModalPage style={pageStyle}>
 		<div class="inputContainer">
 			<label for="bannerInput">Banner</label>
 			<input type="file" name="" id="bannerInput" />
@@ -26,17 +31,11 @@
 			<label for="descriptionTextArea">Description</label>
 			<textarea name="" id="descriptionTextArea" cols="20" rows="3" />
 		</div>
-	</div>
+	</ModalPage>
 </Modal>
 
 <style lang="scss">
 	@import "../../../styles/globalStyles.scss";
-
-	.modal {
-		max-width: 500px;
-		display: flex;
-		flex-direction: column;
-	}
 
 	.title {
 		font-size: 24px;
