@@ -16,7 +16,6 @@
 		const pages = pagesContainer.querySelectorAll(".page") as NodeListOf<HTMLElement>;
 		pageCount = pages.length - 1;
 		for (let i = 0; i < pages.length; i++) {
-			// Minus the padding and border from the width
 			pages[i].style.minWidth = "100%";
 		}
 	});
@@ -60,6 +59,7 @@
 		{/if}
 	{/if}
 
+	<!-- Minus the padding and border from the width -->
 	<div class="pagesContainer" style="width: {width - 32 - 4 + 'px'};" bind:this={pagesContainer}>
 		<slot />
 	</div>
