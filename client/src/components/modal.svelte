@@ -13,6 +13,9 @@
 	let pages: NodeListOf<HTMLElement> | null = null;
 	let currentPage = 0;
 
+	const padding = 32;
+	const borderWidth = 4;
+
 	onMount(() => {
 		// Only get the direct children with a page class
 		pages = pagesContainer.querySelectorAll(
@@ -24,20 +27,18 @@
 
 	function updateModalHeight() {
 		if (pages && pages?.length > 0) {
-			console.log(pages[currentPage]);
-			modal.style.height = pages[currentPage].clientHeight + 32 + 4 + "px";
+			modal.style.height = pages[currentPage].clientHeight + padding + borderWidth + "px";
 			pagesContainer.style.height = pages[currentPage].clientHeight + "px";
 		}
 	}
 
 	function changePage(action: "next" | "previous") {
-		if (action === "previous" && currentPage - 1 >= 0) {
+		if (action === "previous") {
 			currentPage -= 1;
-		} else if (action === "next" && currentPage + 1 < pages!.length) {
+		} else if (action === "next") {
 			currentPage += 1;
 		}
-		// Minus the border width
-		pagesContainer.style.right = currentPage * width - 4 + "px";
+		pagesContainer.style.right = currentPage * width - borderWidth + "px";
 		updateModalHeight();
 	}
 </script>
@@ -48,7 +49,7 @@
 	on:click|stopPropagation={() => {}}
 	on:keyup|stopPropagation={() => {}}
 	role="none"
-	style="width:{width}px;{style}"
+	style="{style.replace(/(;|(?<=.))$/, () => ';')}width:{width}px;"
 	bind:this={modal}
 >
 	<button
