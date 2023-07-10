@@ -24,16 +24,8 @@
 	</ModalPage>
 	<ModalPage style={pageStyle}>
 		<p class="description">
-			How about customizing it a bit further? You can change these later if you just want to get
-			started!
-		</p>
-		<p class="description">
-			How about customizing it a bit further? You can change these later if you just want to get
-			started!
-		</p>
-		<p class="description">
-			How about customizing it a bit further? You can change these later if you just want to get
-			started!
+			How about customizing it a bit further? <br />You can change these later if you just want to
+			get started!
 		</p>
 		<div class="inputContainer">
 			<label for="bannerInput">Banner</label>
@@ -43,6 +35,9 @@
 			<label for="descriptionTextArea">Description</label>
 			<textarea name="" id="descriptionTextArea" cols="20" rows="3" />
 		</div>
+		<button class="create-domain-button">
+			<p>Create Domain!</p>
+		</button>
 	</ModalPage>
 </Modal>
 
@@ -58,6 +53,7 @@
 	.description {
 		font-size: 18px;
 		text-align: center;
+		margin-bottom: 8px;
 	}
 
 	.nameIconContainer {
@@ -72,6 +68,26 @@
 
 	textarea {
 		resize: none;
+	}
+
+	.create-domain-button {
+		width: fit-content;
+		padding: 4px 6px;
+		border: $mainBorderWidth solid $secondaryElementColour;
+		border-radius: $mainBorderRadius;
+		background-color: $mainElementColour;
+		align-self: center;
+		margin-top: 12px;
+		cursor: pointer;
+		transition: background-color 200ms ease-in-out;
+
+		& > p {
+			font-size: 16px;
+		}
+
+		&:hover {
+			background-color: #202020;
+		}
 	}
 
 	p,
