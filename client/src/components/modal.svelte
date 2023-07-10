@@ -96,6 +96,8 @@
 		transition: height 200ms ease-in-out;
 		display: flex;
 		align-items: center;
+		// Because it's using translateX(-50%), I have to move the origin -%50 as well
+		transform-origin: 0% 50%;
 	}
 
 	#pagesContainer {
