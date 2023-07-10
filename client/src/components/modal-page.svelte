@@ -8,8 +8,6 @@
 
 <style>
 	.modalPage {
-		position: relative;
 		min-width: 100%;
-		height: fit-content;
 	}
 </style>

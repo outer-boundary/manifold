@@ -3,6 +3,8 @@
 	import { modalState, modalTransitionTime } from "../stores/modalState";
 	import Icon from "@iconify/svelte";
 	import { onMount } from "svelte";
+	import { fade } from "svelte/transition";
+	import { cubicOut } from "svelte/easing";
 
 	// The width needs to be explicitly defined because of how the 'pagination' works
 	export let width: number;
@@ -13,11 +15,12 @@
 	let pages: NodeListOf<HTMLElement> | null = null;
 	let currentPage = 0;
 
-	const padding = 32;
+	const paddingX = 80;
+	const paddingY = 70;
 	const borderWidth = 4;
 
 	onMount(() => {
-		// Only get the direct children with a page class
+		// Only get the direct children with a modalPage class
 		pages = pagesContainer.querySelectorAll(
 			"#pagesContainer > .modalPage"
 		) as NodeListOf<HTMLElement>;
@@ -27,7 +30,7 @@
 
 	function updateModalHeight() {
 		if (pages && pages?.length > 0) {
-			modal.style.height = pages[currentPage].clientHeight + padding + borderWidth + "px";
+			modal.style.height = pages[currentPage].clientHeight + paddingY + borderWidth + "px";
 			pagesContainer.style.height = pages[currentPage].clientHeight + "px";
 		}
 	}
@@ -38,7 +41,7 @@
 		} else if (action === "next") {
 			currentPage += 1;
 		}
-		pagesContainer.style.right = currentPage * width - borderWidth + "px";
+		pagesContainer.style.right = currentPage * width - currentPage * borderWidth + "px";
 		updateModalHeight();
 	}
 </script>
@@ -62,19 +65,31 @@
 	</button>
 	{#if pages && pages.length > 0}
 		{#if currentPage !== 0}
-			<button class="arrow-icon left" on:click={() => changePage("previous")}>
+			<button
+				class="arrow-icon left"
+				on:click={() => changePage("previous")}
+				transition:fade={{ duration: 200, easing: cubicOut }}
+			>
 				<Icon icon="material-symbols:arrow-left-rounded" />
 			</button>
 		{/if}
 		{#if currentPage !== pages.length - 1}
-			<button class="arrow-icon right" on:click={() => changePage("next")}>
+			<button
+				class="arrow-icon right"
+				on:click={() => changePage("next")}
+				transition:fade={{ duration: 200, easing: cubicOut }}
+			>
 				<Icon icon="material-symbols:arrow-right-rounded" />
 			</button>
 		{/if}
 	{/if}
 
 	<!-- Minus the padding and border from the width -->
-	<div id="pagesContainer" style="width: {width - 32 - 4 + 'px'};" bind:this={pagesContainer}>
+	<div
+		id="pagesContainer"
+		style="width: {width - paddingX - borderWidth + 'px'};"
+		bind:this={pagesContainer}
+	>
 		<slot />
 	</div>
 </div>
@@ -82,13 +97,14 @@
 <style lang="scss">
 	@import "../styles/globalStyles.scss";
 
-	$padding: 16px;
+	$padding: 40px;
 
 	#modal {
 		background-color: $mainElementColour;
 		border: $mainBorderWidth solid $secondaryElementColour;
 		border-radius: $mainBorderRadius;
 		padding: $padding;
+		padding-top: 30px;
 		position: absolute;
 		align-self: center;
 		left: 50%;
@@ -119,7 +135,7 @@
 		top: 16px;
 		right: 16px;
 		background-color: transparent;
-		color: $secondaryElementColour;
+		color: #555555;
 		transition: filter 100ms ease-out;
 		z-index: 100;
 
@@ -151,7 +167,7 @@
 			height: $iconSize;
 		}
 
-		$spacing: -6px;
+		$spacing: 3px;
 		&.left {
 			left: $spacing;
 		}

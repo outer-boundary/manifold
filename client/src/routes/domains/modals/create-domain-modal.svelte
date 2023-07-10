@@ -47,7 +47,7 @@
 	.title {
 		font-size: 24px;
 		align-self: center;
-		margin-bottom: 8px;
+		margin-bottom: 12px;
 	}
 
 	.description {
