@@ -31,6 +31,7 @@
 			backdrop-filter calc($modalTransitionTime / 2) ease-out;
 		z-index: 100;
 		pointer-events: none;
+		display: flex;
 
 		&.active {
 			background-color: rgba(0, 0, 0, 0.4);

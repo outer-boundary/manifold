@@ -2,12 +2,14 @@
 	export let style = "";
 </script>
 
-<div class="page" {style}>
+<div class="modalPage" {style}>
 	<slot />
 </div>
 
 <style>
-	.page {
+	.modalPage {
 		position: relative;
+		min-width: 100%;
+		height: fit-content;
 	}
 </style>

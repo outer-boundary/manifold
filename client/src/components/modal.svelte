@@ -8,25 +8,37 @@
 	export let width: number;
 	export let style: string = "";
 
+	let modal: HTMLElement;
 	let pagesContainer: HTMLElement;
-	let pageCount = 0;
+	let pages: NodeListOf<HTMLElement> | null = null;
 	let currentPage = 0;
 
 	onMount(() => {
-		const pages = pagesContainer.querySelectorAll(".page") as NodeListOf<HTMLElement>;
-		pageCount = pages.length - 1;
-		for (let i = 0; i < pages.length; i++) {
-			pages[i].style.minWidth = "100%";
-		}
+		// Only get the direct children with a page class
+		pages = pagesContainer.querySelectorAll(
+			"#pagesContainer > .modalPage"
+		) as NodeListOf<HTMLElement>;
+
+		updateModalHeight();
 	});
+
+	function updateModalHeight() {
+		if (pages && pages?.length > 0) {
+			console.log(pages[currentPage]);
+			modal.style.height = pages[currentPage].clientHeight + 32 + 4 + "px";
+			pagesContainer.style.height = pages[currentPage].clientHeight + "px";
+		}
+	}
 
 	function changePage(action: "next" | "previous") {
 		if (action === "previous" && currentPage - 1 >= 0) {
 			currentPage -= 1;
-		} else if (action === "next" && currentPage + 1 <= pageCount) {
+		} else if (action === "next" && currentPage + 1 < pages!.length) {
 			currentPage += 1;
 		}
-		pagesContainer.style.left = currentPage * -width + "px";
+		// Minus the border width
+		pagesContainer.style.right = currentPage * width - 4 + "px";
+		updateModalHeight();
 	}
 </script>
 
@@ -37,6 +49,7 @@
 	on:keyup|stopPropagation={() => {}}
 	role="none"
 	style="width:{width}px;{style}"
+	bind:this={modal}
 >
 	<button
 		class="close-icon"
@@ -46,13 +59,13 @@
 	>
 		<Icon icon="material-symbols:close-rounded" />
 	</button>
-	{#if pageCount > 0}
+	{#if pages && pages.length > 0}
 		{#if currentPage !== 0}
 			<button class="arrow-icon left" on:click={() => changePage("previous")}>
 				<Icon icon="material-symbols:arrow-left-rounded" />
 			</button>
 		{/if}
-		{#if currentPage !== pageCount}
+		{#if currentPage !== pages.length - 1}
 			<button class="arrow-icon right" on:click={() => changePage("next")}>
 				<Icon icon="material-symbols:arrow-right-rounded" />
 			</button>
@@ -60,7 +73,7 @@
 	{/if}
 
 	<!-- Minus the padding and border from the width -->
-	<div class="pagesContainer" style="width: {width - 32 - 4 + 'px'};" bind:this={pagesContainer}>
+	<div id="pagesContainer" style="width: {width - 32 - 4 + 'px'};" bind:this={pagesContainer}>
 		<slot />
 	</div>
 </div>
@@ -76,18 +89,23 @@
 		border-radius: $mainBorderRadius;
 		padding: $padding;
 		position: absolute;
+		align-self: center;
 		left: 50%;
-		top: 50%;
-		translate: -50% -50%;
+		transform: translateX(-50%);
 		overflow: hidden;
+		transition: height 200ms ease-in-out;
+		display: flex;
+		align-items: center;
 	}
 
-	.pagesContainer {
+	#pagesContainer {
 		display: flex;
 		flex-direction: row;
+		align-items: center;
 		gap: calc($padding * 2);
 		position: relative;
-		transition: left 200ms ease-in-out;
+		transition: right 200ms ease-in-out;
+		right: 0;
 	}
 
 	$iconSize: 24px;

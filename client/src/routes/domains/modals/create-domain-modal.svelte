@@ -23,6 +23,18 @@
 		</div>
 	</ModalPage>
 	<ModalPage style={pageStyle}>
+		<p class="description">
+			How about customizing it a bit further? You can change these later if you just want to get
+			started!
+		</p>
+		<p class="description">
+			How about customizing it a bit further? You can change these later if you just want to get
+			started!
+		</p>
+		<p class="description">
+			How about customizing it a bit further? You can change these later if you just want to get
+			started!
+		</p>
 		<div class="inputContainer">
 			<label for="bannerInput">Banner</label>
 			<input type="file" name="" id="bannerInput" />
@@ -50,7 +62,7 @@
 
 	.nameIconContainer {
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 	}
 
 	.inputContainer {
