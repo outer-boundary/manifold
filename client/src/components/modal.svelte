@@ -49,7 +49,7 @@
 	on:click|stopPropagation={() => {}}
 	on:keyup|stopPropagation={() => {}}
 	role="none"
-	style="{style.replace(/(;|(?<=.))$/, () => ';')}width:{width}px;"
+	style="width:{width}px;{style}"
 	bind:this={modal}
 >
 	<button
