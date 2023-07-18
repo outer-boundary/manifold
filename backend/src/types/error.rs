@@ -4,6 +4,7 @@ type ErrorCode = u16;
 
 // Model representing a user.
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ErrorResponse {
     pub code: ErrorCode,
     pub message: String,
@@ -41,6 +42,7 @@ impl ErrorResponse {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FieldError {
     pub code: ErrorCode,
     pub field: String,

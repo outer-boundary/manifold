@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 // Model representing a user entry in the users table.
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: Uuid,
 
@@ -18,6 +19,7 @@ pub struct User {
 
 // Model representing the data sent from the client to create a new user.
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct NewUser {
     pub username: String,
     pub identity: ClientLoginIdentity,
