@@ -4,7 +4,6 @@ use crate::{
     util::auth::{
         login::{login_user, logout_user},
         login_identity::verify_login_identity,
-        session::get_user_id_from_session,
     },
 };
 use actix_web::{post, web, HttpResponse};
@@ -95,10 +94,11 @@ async fn logout_route(session: actix_session::Session) -> HttpResponse {
     let result = logout_user(&session);
 
     match result {
-        Ok(_) => {
-            let user_id = get_user_id_from_session(&session);
-            if let Ok(Some(user_id)) = user_id {
-                tracing::info!("Successfully logged out user with id '{}'.", user_id)
+        Ok(user_id) => {
+            if let Some(user_id) = user_id {
+                tracing::info!("Successfully logged out user with id '{}'.", user_id);
+            } else {
+                tracing::info!("There is no logged in user.");
             };
             HttpResponse::NoContent().finish()
         }

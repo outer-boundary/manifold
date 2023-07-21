@@ -1,3 +1,4 @@
+use actix_web::{HttpResponse, ResponseError};
 use serde::Serialize;
 
 type ErrorCode = u16;
@@ -27,21 +28,29 @@ impl ErrorResponse {
         }
     }
 
-    pub fn description<T>(&mut self, content: T) -> &mut Self
+    pub fn description<T>(&self, content: T) -> Self
     where
         T: ToString,
     {
-        self.description = Some(content.to_string());
-        self
+        ErrorResponse {
+            code: self.code,
+            message: self.message.clone(),
+            description: Some(content.to_string()),
+            errors: self.errors.clone(),
+        }
     }
 
-    pub fn field_errors<T>(&mut self, errors: Vec<FieldError>) -> &mut Self {
-        self.errors = Some(errors);
-        self
+    pub fn field_errors<T>(&self, errors: Vec<FieldError>) -> Self {
+        ErrorResponse {
+            code: self.code,
+            message: self.message.clone(),
+            description: self.description.clone(),
+            errors: Some(errors),
+        }
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FieldError {
     pub code: ErrorCode,
@@ -60,4 +69,42 @@ impl FieldError {
             message: message.to_string(),
         }
     }
+}
+
+macro_rules! extractor_error {
+    ($(($variant:ident, $status_code:literal)),* $(,)?) => {
+        #[derive(Debug)]
+        pub enum ExtractorError {
+            $(
+                $variant(ErrorResponse),
+            )*
+        }
+
+        impl std::fmt::Display for ExtractorError {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                match self {
+                    $(
+                        ExtractorError::$variant(err) => write!(f, "{} ({}): {:?}", stringify!($variant), stringify!($status_code), err),
+                    )*
+                }
+            }
+        }
+
+        impl ResponseError for ExtractorError {
+            fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
+                match self {
+                    $(
+                        ExtractorError::$variant(msg) => HttpResponse::$variant().json(msg),
+                    )*
+                }
+            }
+        }
+    }
+}
+
+extractor_error! {
+    (BadRequest, 400),
+    (Unauthorized, 401),
+    (Forbidden, 403),
+    (InternalServerError, 500),
 }

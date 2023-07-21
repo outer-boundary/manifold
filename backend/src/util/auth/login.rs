@@ -1,7 +1,7 @@
 use super::{
     login_identity::{get_login_identity, get_user_id_from_login_identity},
     password::verify_password_hash,
-    session::create_session_for_user,
+    session::{create_session_for_user, get_user_id_from_session},
 };
 use crate::models::login_identity::{ClientLoginIdentity, LoginIdentity};
 use color_eyre::{eyre::eyre, Result};
@@ -45,8 +45,10 @@ pub async fn login_user(
 }
 
 #[tracing::instrument(skip(session))]
-pub fn logout_user(session: &actix_session::Session) -> Result<()> {
+pub fn logout_user(session: &actix_session::Session) -> Result<Option<Uuid>> {
+    let user_id = get_user_id_from_session(session)?;
+
     session.purge();
 
-    Ok(())
+    Ok(user_id)
 }
