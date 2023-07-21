@@ -1,7 +1,10 @@
 use super::{error::ExtractorError, login_identity::ClientLoginIdentity};
 use crate::{
     models::error::ErrorResponse,
-    util::{auth::session::get_user_id_from_session, users::get_user},
+    util::{
+        auth::{login::logout_user, session::get_user_id_from_session},
+        users::get_user,
+    },
 };
 use actix_session::Session;
 use actix_web::{dev::Payload, web, FromRequest, HttpRequest};
@@ -80,10 +83,18 @@ impl FromRequest for CurrentUser {
                         ErrorResponse::new(0, "Unable to get user from db").description(err),
                     )
                 })?
-                .ok_or(ExtractorError::BadRequest(ErrorResponse::new(
-                    0,
-                    "User id stored in session does not match any existing user",
-                )))?;
+                .ok_or({
+                    match logout_user(&session) {
+                        Ok(_) => ExtractorError::BadRequest(ErrorResponse::new(
+                            0,
+                            "User id stored in session does not match any existing user. Session has been forcefully ended",
+                        )),
+                        Err(err) => ExtractorError::InternalServerError(ErrorResponse::new(
+                            0,
+                            "User id stored in session does not match any existing user but unable to end session",
+                        ).description(err)),
+                    }
+                })?;
 
             Ok(CurrentUser { user })
         })

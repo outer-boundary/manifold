@@ -52,21 +52,20 @@ async fn get_user_route(
     current_user: CurrentUser,
 ) -> HttpResponse {
     let user_id = user_id.into_inner();
-    let current_user = &current_user.user;
 
     tracing::debug!("Requesting user with id '{}'...", user_id);
 
-    if current_user.id != user_id {
+    if current_user.user.id != user_id {
         tracing::warn!(
-            "Current logged in user '{}' trying to access details for user with id '{}'.",
-            current_user.id,
+            "User '{}' trying to access details for user with id '{}'.",
+            current_user.user.id,
             user_id
         );
         return HttpResponse::Forbidden().json(ErrorResponse::new(
             0,
             format!(
-                "Current logged in user '{}' trying to access details for user with id '{}'.",
-                current_user.id, user_id
+                "User '{}' trying to access details for user with id '{}'",
+                current_user.user.id, user_id
             ),
         ));
     }
@@ -177,10 +176,26 @@ async fn add_user_route(
 async fn delete_user_route(
     db_pool: web::Data<MySqlPool>,
     user_id: web::Path<Uuid>,
+    current_user: CurrentUser,
 ) -> HttpResponse {
     let user_id = user_id.into_inner();
 
     tracing::debug!("Deleting user with id '{}'...", user_id);
+
+    if current_user.user.id != user_id {
+        tracing::warn!(
+            "User '{}' trying to delete user with id '{}'.",
+            current_user.user.id,
+            user_id
+        );
+        return HttpResponse::Forbidden().json(ErrorResponse::new(
+            0,
+            format!(
+                "User '{}' trying to delete user with id '{}'",
+                current_user.user.id, user_id
+            ),
+        ));
+    }
 
     let user = get_user(user_id, &db_pool).await;
 

@@ -98,7 +98,7 @@ async fn logout_route(session: actix_session::Session) -> HttpResponse {
             if let Some(user_id) = user_id {
                 tracing::info!("Successfully logged out user with id '{}'.", user_id);
             } else {
-                tracing::info!("There is no logged in user.");
+                tracing::debug!("There is no logged in user.");
             };
             HttpResponse::NoContent().finish()
         }
