@@ -81,7 +81,7 @@ impl FromRequest for CurrentUser {
                         ErrorResponse::new(0, "Unable to get user from db").description(err),
                     )
                 })?
-                .ok_or({
+                .ok_or_else(||
                     match logout_user(&session) {
                         Ok(_) => ExtractorError::BadRequest(ErrorResponse::new(
                             0,
@@ -92,7 +92,7 @@ impl FromRequest for CurrentUser {
                             "User id stored in session does not match any existing user but unable to end session",
                         ).description(err)),
                     }
-                })?;
+                )?;
 
             Ok(CurrentUser { user })
         })
