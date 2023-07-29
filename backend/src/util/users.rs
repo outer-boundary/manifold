@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
     let user = sqlx::query_as!(
         User,
-        "SELECT id AS `id: Uuid`, username, first_name, last_name, created_at, updated_at FROM users WHERE id = ?",
+        "SELECT id AS `id: Uuid`, username, created_at, updated_at FROM users WHERE id = ?",
         id
     )
     .fetch_optional(db_pool)
@@ -21,7 +21,7 @@ pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
 pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
     let users = sqlx::query_as!(
         User,
-        "SELECT id AS `id: Uuid`, username, first_name, last_name, created_at, updated_at FROM users ORDER BY id"
+        "SELECT id AS `id: Uuid`, username, created_at, updated_at FROM users ORDER BY id"
     )
     .fetch_all(db_pool)
     .await?;
