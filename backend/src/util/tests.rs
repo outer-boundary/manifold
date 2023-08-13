@@ -1,34 +1,34 @@
-use crate::Error;
-use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
+use color_eyre::Result;
+use sqlx::{mysql::MySqlPoolOptions, Executor, MySqlPool};
 
 pub struct TestPool {
-    pub pool: MySqlPool,
+    pub db_pool: MySqlPool,
 }
 
 impl TestPool {
-    pub async fn connect() -> Result<Self, Error> {
-        dotenv::from_filename(".env.dev")?;
+    pub async fn connect() -> Result<Self> {
+        dotenvy::dotenv()?;
 
-        let pool = MySqlPoolOptions::new()
+        let db_pool = MySqlPoolOptions::new()
             .max_connections(1)
             .connect(&std::env::var("DATABASE_URL")?)
             .await?;
 
-        sqlx::query("BEGIN").execute(&pool).await?;
+        db_pool.execute("START TRANSACTION").await?;
 
-        Ok(TestPool { pool })
+        Ok(TestPool { db_pool })
     }
 
     pub fn get(&self) -> MySqlPool {
-        self.pool.clone()
+        self.db_pool.clone()
     }
 }
 
 impl Drop for TestPool {
     fn drop(&mut self) {
-        let pool = self.get();
+        let db_pool = self.get();
         actix_web::rt::spawn(async move {
-            sqlx::query("ROLLBACK").execute(&pool).await.ok();
+            sqlx::query!("ROLLBACK").execute(&db_pool).await.ok();
         });
     }
 }
