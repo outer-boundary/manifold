@@ -22,10 +22,18 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
         .service(delete_user_route);
 }
 
-#[tracing::instrument(skip(db_pool))]
+#[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[get("")]
-async fn get_users_route(db_pool: web::Data<MySqlPool>) -> HttpResponse {
+async fn get_users_route(db_pool: web::Data<MySqlPool>, current_user: CurrentUser) -> HttpResponse {
     tracing::debug!("Requesting all users...");
+
+    if current_user.0.account_role != AccountRole::SysAdmin {
+        tracing::warn!("User '{}' is not a sys-admin.", current_user.0.id);
+        return HttpResponse::Forbidden().json(ErrorResponse::new(
+            0,
+            format!("User '{}' is not a sys-admin", current_user.0.id),
+        ));
+    }
 
     let users = get_users(&db_pool).await;
 
@@ -55,7 +63,7 @@ async fn get_user_route(
 
     tracing::debug!("Requesting user with id '{}'...", user_id);
 
-    if current_user.0.id != user_id {
+    if current_user.0.id != user_id && current_user.0.account_role != AccountRole::SysAdmin {
         tracing::warn!(
             "User '{}' trying to access details for user with id '{}'.",
             current_user.0.id,
@@ -111,8 +119,17 @@ async fn add_user_route(
     redis: web::Data<RedisPool>,
     request: HttpRequest,
     new_user: web::Json<NewUser>,
+    current_user: CurrentUser,
 ) -> HttpResponse {
     tracing::debug!("Creating new user...");
+
+    if current_user.0.account_role != AccountRole::SysAdmin {
+        tracing::warn!("User '{}' is not a sys-admin.", current_user.0.id);
+        return HttpResponse::Forbidden().json(ErrorResponse::new(
+            0,
+            format!("User '{}' is not a sys-admin", current_user.0.id),
+        ));
+    }
 
     // Create the user
     let user = add_user(new_user.clone(), &db_pool).await;
@@ -182,7 +199,7 @@ async fn delete_user_route(
 
     tracing::debug!("Deleting user with id '{}'...", user_id);
 
-    if current_user.0.id != user_id {
+    if current_user.0.id != user_id && current_user.0.account_role != AccountRole::SysAdmin {
         tracing::warn!(
             "User '{}' trying to delete user with id '{}'.",
             current_user.0.id,

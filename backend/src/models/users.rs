@@ -29,7 +29,7 @@ pub struct User {
 }
 
 // Model representing a user's account's role. This is a global role that applies across the whole application.
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum AccountRole {
     User,
@@ -81,6 +81,9 @@ pub struct NewUser {
 
 #[derive(Debug)]
 pub struct CurrentUser(pub User);
+
+#[derive(Debug)]
+pub struct OptionalCurrentUser(pub Option<User>);
 
 impl FromRequest for CurrentUser {
     type Error = ExtractorError;
@@ -137,6 +140,31 @@ impl FromRequest for CurrentUser {
                 )?;
 
             Ok(CurrentUser(user))
+        })
+    }
+}
+
+impl FromRequest for OptionalCurrentUser {
+    type Error = ExtractorError;
+    type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
+
+    fn from_request(req: &HttpRequest, payload: &mut Payload) -> Self::Future {
+        let current_user = CurrentUser::from_request(req, payload);
+
+        Box::pin(async move {
+            match current_user.await {
+                Ok(user) => Ok(OptionalCurrentUser(Some(user.0))),
+                Err(err) => {
+                    match err {
+                        // In the case of Unauthorized or BadRequest, return None, meaning no user found.
+                        ExtractorError::Unauthorized(_) | ExtractorError::BadRequest(_) => {
+                            Ok(OptionalCurrentUser(None))
+                        }
+                        // For other errors, propagate them as is.
+                        _ => Err(err),
+                    }
+                }
+            }
         })
     }
 }
