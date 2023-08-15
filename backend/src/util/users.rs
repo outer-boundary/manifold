@@ -26,13 +26,6 @@ pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
     .fetch_all(db_pool)
     .await?;
 
-    tracing::info!("{:#?}", users);
-
-    let users_roles: Vec<String> = users
-        .iter()
-        .map(|user| serde_json::to_string(&user.account_role).unwrap_or("NULL".to_string()))
-        .collect();
-
     Ok(users)
 }
 
