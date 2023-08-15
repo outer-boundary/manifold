@@ -44,7 +44,7 @@ async fn get_users_route(db_pool: web::Data<MySqlPool>) -> HttpResponse {
     }
 }
 
-#[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.user.id))]
+#[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[get("/{user_id}")]
 async fn get_user_route(
     db_pool: web::Data<MySqlPool>,
@@ -55,17 +55,17 @@ async fn get_user_route(
 
     tracing::debug!("Requesting user with id '{}'...", user_id);
 
-    if current_user.user.id != user_id {
+    if current_user.0.id != user_id {
         tracing::warn!(
             "User '{}' trying to access details for user with id '{}'.",
-            current_user.user.id,
+            current_user.0.id,
             user_id
         );
         return HttpResponse::Forbidden().json(ErrorResponse::new(
             0,
             format!(
                 "User '{}' trying to access details for user with id '{}'",
-                current_user.user.id, user_id
+                current_user.0.id, user_id
             ),
         ));
     }
@@ -171,7 +171,7 @@ async fn add_user_route(
     }
 }
 
-#[tracing::instrument(skip(db_pool))]
+#[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[delete("/{user_id}")]
 async fn delete_user_route(
     db_pool: web::Data<MySqlPool>,
@@ -182,17 +182,17 @@ async fn delete_user_route(
 
     tracing::debug!("Deleting user with id '{}'...", user_id);
 
-    if current_user.user.id != user_id {
+    if current_user.0.id != user_id {
         tracing::warn!(
             "User '{}' trying to delete user with id '{}'.",
-            current_user.user.id,
+            current_user.0.id,
             user_id
         );
         return HttpResponse::Forbidden().json(ErrorResponse::new(
             0,
             format!(
                 "User '{}' trying to delete user with id '{}'",
-                current_user.user.id, user_id
+                current_user.0.id, user_id
             ),
         ));
     }

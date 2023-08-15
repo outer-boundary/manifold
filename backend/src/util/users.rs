@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
     let user = sqlx::query_as!(
         User,
-        "SELECT id AS `id: Uuid`, username, created_at, updated_at FROM users WHERE id = ?",
+        "SELECT id AS `id: Uuid`, username, account_role AS `account_role: AccountRole`, created_at, updated_at FROM users WHERE id = ?",
         id
     )
     .fetch_optional(db_pool)
@@ -21,28 +21,34 @@ pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
 pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
     let users = sqlx::query_as!(
         User,
-        "SELECT id AS `id: Uuid`, username, created_at, updated_at FROM users ORDER BY id"
+        "SELECT id AS `id: Uuid`, username, account_role AS `account_role: AccountRole`, created_at, updated_at FROM users ORDER BY id"
     )
     .fetch_all(db_pool)
     .await?;
+
+    tracing::info!("{:#?}", users);
+
+    let users_roles: Vec<String> = users
+        .iter()
+        .map(|user| serde_json::to_string(&user.account_role).unwrap_or("NULL".to_string()))
+        .collect();
 
     Ok(users)
 }
 
 #[tracing::instrument(skip(db_pool))]
 pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> Result<User> {
-    // Generate user's id.
     let id = Uuid::new_v4();
-    // Add user to database.
+
     sqlx::query!(
-        "INSERT INTO users (id, username) VALUES (?, ?)",
+        "INSERT INTO users (id, username, account_role) VALUES (?, ?, ?)",
         id,
-        new_user.username
+        new_user.username,
+        new_user.account_role.unwrap_or(AccountRole::User)
     )
     .execute(db_pool)
     .await?;
 
-    // Add user's login identity and return the user's id.
     match add_login_identity(id, new_user.identity, db_pool).await {
         Ok(_) => match get_user(id, db_pool).await? {
             Some(user) => Ok(user),
@@ -72,7 +78,6 @@ pub async fn delete_user(id: Uuid, db_pool: &MySqlPool) -> Result<()> {
     // Delete all of a user's login identities before deleting the actual user.
     delete_all_login_identities(id, db_pool).await?;
 
-    // Delete the user.
     sqlx::query!("DELETE FROM users WHERE id = ?", id)
         .execute(db_pool)
         .await?;

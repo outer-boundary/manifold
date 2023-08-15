@@ -3,6 +3,7 @@ CREATE TABLE users (
   id binary(16) PRIMARY KEY NOT NULL,
 
   username varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
+  account_role varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   
   created_at datetime NOT NULL DEFAULT current_timestamp,
   updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp
