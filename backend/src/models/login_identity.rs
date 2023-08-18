@@ -15,7 +15,7 @@ impl LoginIdentityType {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(untagged)]
+#[serde(untagged, rename_all = "camelCase")]
 pub enum LoginIdentity {
     Email(LIEmail),
 }
@@ -36,6 +36,7 @@ impl LoginIdentity {
 
 // Model representing an email login identity stored in the login_identity__email table.
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct LIEmail {
     pub user_id: Uuid,
 
@@ -51,7 +52,7 @@ pub struct LIEmail {
 
 // Enum representing all possible login identities that a user can use when authenticating or creating a new account.
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(untagged)]
+#[serde(untagged, rename_all = "camelCase")]
 pub enum ClientLoginIdentity {
     Email(ClientLIEmail),
 }
@@ -72,6 +73,7 @@ impl ClientLoginIdentity {
 
 // Model representing the data sent from the client to log in or to create a new user.
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ClientLIEmail {
     pub email: String,
     pub password: String,

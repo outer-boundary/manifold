@@ -3,11 +3,11 @@ use deadpool_redis::Pool;
 use sqlx::MySqlPool;
 
 use crate::{
-    types::error::ErrorResponse,
+    models::error::ErrorResponse,
     util::health_check::{database_connection_check, redis_connection_check},
 };
 
-#[tracing::instrument(skip(redis))]
+#[tracing::instrument(skip(db_pool, redis))]
 #[get("/health-check")]
 async fn health_check_route(db_pool: web::Data<MySqlPool>, redis: web::Data<Pool>) -> HttpResponse {
     tracing::debug!("Running health check route...");

@@ -1,10 +1,9 @@
 use crate::{
-    models::login_identity::ClientLoginIdentity,
-    types::{error::ErrorResponse, redis::RedisPool},
+    models::{error::ErrorResponse, login_identity::ClientLoginIdentity},
+    types::redis::RedisPool,
     util::auth::{
         login::{login_user, logout_user},
         login_identity::verify_login_identity,
-        session::get_user_id_from_session,
     },
 };
 use actix_web::{post, web, HttpResponse};
@@ -92,14 +91,14 @@ async fn login_route(
 async fn logout_route(session: actix_session::Session) -> HttpResponse {
     tracing::debug!("Logging out user...");
 
-    let user_id = get_user_id_from_session(&session);
-
     let result = logout_user(&session);
 
     match result {
-        Ok(_) => {
-            if let Ok(Some(user_id)) = user_id {
-                tracing::info!("Successfully logged out user with id '{}'.", user_id)
+        Ok(user_id) => {
+            if let Some(user_id) = user_id {
+                tracing::info!("Successfully logged out user with id '{}'.", user_id);
+            } else {
+                tracing::debug!("There is no logged in user.");
             };
             HttpResponse::NoContent().finish()
         }
