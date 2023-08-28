@@ -1,4 +1,4 @@
-use super::auth::login_identity::{add_login_identity, delete_all_login_identities};
+use super::{auth::login_identity::{add_login_identity, delete_all_login_identities}, domains::delete_all_user_memberships};
 use crate::models::users::*;
 use color_eyre::{eyre::eyre, Result};
 use sqlx::MySqlPool;
@@ -69,8 +69,9 @@ pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> Result<User> {
 
 #[tracing::instrument(skip(db_pool))]
 pub async fn delete_user(id: Uuid, db_pool: &MySqlPool) -> Result<()> {
-    // Delete all of a user's login identities before deleting the actual user.
+    // Delete all of a user's login identities and domain memberships before deleting the actual user.
     delete_all_login_identities(id, db_pool).await?;
+    delete_all_user_memberships(id, db_pool).await?;
 
     // Delete the user.
     sqlx::query!("DELETE FROM users WHERE id = ?", id)

@@ -35,23 +35,3 @@ CREATE TABLE login_identity__email (
   created_at datetime NOT NULL DEFAULT current_timestamp,
   updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp
 );
-
--- Table for domains
-CREATE TABLE domains (
-  id binary(16) PRIMARY KEY NOT NULL,
-
-  display_name nvarchar(64) NOT NULL,
-  banner_url varchar(255) CHARACTER SET utf8mb4,
-  icon_url varchar(255) CHARACTER SET utf8mb4,
-
-  created_at datetime NOT NULL DEFAULT current_timestamp,
-  updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp
-);
-
--- Table for the members in a domain
-CREATE TABLE domain_memberships (
-  domain_id binary(16) PRIMARY KEY NOT NULL,
-
-  user_id binary(16) NOT NULL,
-  role_name varchar(16) CHARACTER SET utf8mb4 NOT NULL,
-)
