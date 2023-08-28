@@ -39,10 +39,10 @@ pub fn require_role_internal(args: TokenStream, input: TokenStream) -> TokenStre
     let expanded = quote! {
         #sig {
             if current_user.0.account_role != AccountRole::from_str(#role).unwrap() {
-                tracing::warn!("User '{}' does not have role '{}'.", current_user.0.id, stringify!(#role));
+                tracing::warn!("User '{}' does not have role '{}'.", current_user.0.id, #role.to_string());
                 return actix_web::HttpResponse::Forbidden().json(ErrorResponse::new(
                     0,
-                    format!("User '{}' does not have role '{}'", current_user.0.id, stringify!(#role)),
+                    format!("User '{}' does not have role '{}'", current_user.0.id, #role.to_string()),
                 ));
             }
 
