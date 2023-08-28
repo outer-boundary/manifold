@@ -6,6 +6,7 @@ use crate::{
     },
     types::redis::RedisPool,
     util::{
+        configuration::{get_config, Environment},
         email::send_multipart_email,
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},
@@ -119,16 +120,30 @@ async fn add_user_route(
     redis: web::Data<RedisPool>,
     request: HttpRequest,
     new_user: web::Json<NewUser>,
-    current_user: CurrentUser,
+    current_user: OptionalCurrentUser,
 ) -> HttpResponse {
     tracing::debug!("Creating new user...");
 
-    if current_user.0.account_role != AccountRole::SysAdmin {
-        tracing::warn!("User '{}' is not a sys-admin.", current_user.0.id);
-        return HttpResponse::Forbidden().json(ErrorResponse::new(
-            0,
-            format!("User '{}' is not a sys-admin", current_user.0.id),
-        ));
+    let config = get_config();
+
+    if let Err(err) = config {
+        return HttpResponse::InternalServerError()
+            .json(ErrorResponse::new(0, "Unable to get app config").description(err));
+    }
+
+    if config.unwrap().environment != Environment::Development {
+        if let Some(current_user) = current_user.0 {
+            if current_user.account_role != AccountRole::SysAdmin {
+                tracing::warn!("User '{}' is not a sys-admin.", current_user.id);
+                return HttpResponse::Forbidden().json(ErrorResponse::new(
+                    0,
+                    format!("User '{}' is not a sys-admin", current_user.id),
+                ));
+            }
+        } else {
+            tracing::warn!("No active session");
+            return HttpResponse::Forbidden().json(ErrorResponse::new(0, "No active session"));
+        }
     }
 
     // Create the user

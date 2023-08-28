@@ -41,7 +41,6 @@ impl<'r> sqlx::Decode<'r, MySql> for AccountRole {
         value: <MySql as sqlx::database::HasValueRef<'r>>::ValueRef,
     ) -> Result<Self, sqlx::error::BoxDynError> {
         let s = <&str as sqlx::Decode<MySql>>::decode(value)?;
-        tracing::info!("{}", s);
         match s {
             "user" => Ok(AccountRole::User),
             "sys-admin" => Ok(AccountRole::SysAdmin),
