@@ -10,6 +10,7 @@
     "dev:web": "run-p dev:backend dev:client:web",
     "dev:desktop": "run-p dev:backend dev:client:desktop",
     "dev:backend": "pnpm in:backend cargo run",
+    "dev:backend:watch": "pnpm in:backend cargo watch -x run",
     "dev:client:web": "pnpm in:client pnpm run dev:web",
     "dev:client:desktop": "pnpm in:client pnpm run dev:desktop",
     "test:backend": "pnpm in:backend cargo test -- --test-threads=1",
@@ -20,7 +21,7 @@
     "build:backend": "pnpm in:backend cross-env MANIFOLD__ENVIRONMENT=production cargo build --release",
     "build:client": "pnpm in:client pnpm run build",
     "postinstall": "run-p install:*",
-    "install:backend": "pnpm in:backend cargo install sqlx-cli",
+    "install:backend": "pnpm in:backend cargo install sqlx-cli cargo-watch",
     "install:client": "pnpm in:client pnpm install"
   },
   "keywords": [],
