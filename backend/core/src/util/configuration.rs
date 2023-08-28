@@ -159,7 +159,7 @@ impl Display for Environment {
 /// `MANIFOLD__APPLICATION_PORT=5001` for `port` to be set as `5001`
 pub fn get_config() -> Result<Configuration> {
     let base_path = std::env::current_dir()?;
-    let settings_directory = base_path.join("settings");
+    let settings_directory = base_path.join("../settings");
 
     // Detect the running environment.
     // Default to `development` if unspecified.

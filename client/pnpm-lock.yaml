@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@tauri-apps/api':
     specifier: 2.0.0-alpha.1
@@ -21,6 +25,9 @@ devDependencies:
   '@typescript-eslint/parser':
     specifier: ^5.45.0
     version: 5.57.0(eslint@8.36.0)(typescript@5.0.2)
+  corepack:
+    specifier: ^0.19.0
+    version: 0.19.0
   eslint:
     specifier: ^8.28.0
     version: 8.36.0
@@ -879,6 +886,12 @@ packages:
   /cookie@0.5.0:
     resolution: {integrity: sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==}
     engines: {node: '>= 0.6'}
+    dev: true
+
+  /corepack@0.19.0:
+    resolution: {integrity: sha512-mG4nu1zM5autGOSxl+rrpbx7+ZBhn3gsgXh0bJQVUg3HOo9RTKQvdj7gmp+CDj5clIySRrnWUtZROGfQPGROyg==}
+    engines: {node: '>=16.20.0'}
+    hasBin: true
     dev: true
 
   /cross-spawn@6.0.5:
