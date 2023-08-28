@@ -59,8 +59,6 @@ async fn get_user_route(
 
     tracing::debug!("Requesting user with id '{}'...", user_id);
 
-    
-
     if current_user.0.id != user_id && current_user.0.account_role != AccountRole::SysAdmin {
         tracing::warn!(
             "User '{}' trying to access details for user with id '{}'.",
