@@ -6,7 +6,7 @@ export default defineConfig(async () => {
 	const config = {
 		plugins: [sveltekit()],
 		server: {
-			host: "0.0.0.0",
+			host: "localhost",
 			port: 5173,
 			strictPort: true,
 			hmr: {
