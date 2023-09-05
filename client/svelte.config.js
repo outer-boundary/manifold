@@ -20,7 +20,8 @@ const config = {
 						? ["self"]
 						: [
 								"self",
-								"ws://localhost",
+								"ws://localhost:5173",
+								"ws://localhost:5183",
 								"api.iconify.design",
 								"api.simplesvg.com",
 								"api.unisvg.com"

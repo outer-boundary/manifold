@@ -12,6 +12,7 @@ export default defineConfig(async () => {
 			hmr: {
 				protocol: "ws",
 				host: 'localhost',
+				port: 5183
 			},
 			// Allow serving files from the public folder
 			fs: {
