@@ -11,8 +11,7 @@ export default defineConfig(async () => {
 			strictPort: true,
 			hmr: {
 				protocol: "ws",
-				host: await internalIpV4(),
-				port: 5183
+				host: 'localhost',
 			},
 			// Allow serving files from the public folder
 			fs: {
