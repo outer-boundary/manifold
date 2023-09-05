@@ -6,13 +6,12 @@ export default defineConfig(async () => {
 	const config = {
 		plugins: [sveltekit()],
 		server: {
-			host: "0.0.0.0",
+			host: "localhost",
 			port: 5173,
 			strictPort: true,
 			hmr: {
 				protocol: "ws",
-				host: await internalIpV4(),
-				port: 5183
+				host: 'localhost',
 			},
 			// Allow serving files from the public folder
 			fs: {

@@ -10,7 +10,7 @@ const config = {
 		csp: {
 			mode: "hash",
 			directives: {
-				"default-src": ["self", "ws://10.1.1.123:5183/"],
+				"default-src": ["self"],
 				"img-src": ["self", "https://external-content.duckduckgo.com"],
 				"script-src": ["self", "unsafe-inline"],
 				"style-src": ["self", "unsafe-inline"],
@@ -20,10 +20,7 @@ const config = {
 						? ["self"]
 						: [
 								"self",
-								"ws://192.168.20.0:5183",
-								"ws://10.1.1.123:5183/",
-								"ws://localhost:5173",
-								"http://10.1.1.123:5183/",
+								"ws://localhost",
 								"api.iconify.design",
 								"api.simplesvg.com",
 								"api.unisvg.com"
