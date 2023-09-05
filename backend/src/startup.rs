@@ -57,15 +57,12 @@ async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -
 
     let secret_key = cookie::Key::from(config.secret.hmac_secret.as_bytes());
 
-    // Configure CORS options
-    let cors = Cors::default()
-        .allowed_origin("http://localhost:5173")
-        .supports_credentials()
-        .max_age(3600);
-
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(cors.clone())
+            .wrap(Cors::default()
+                .allowed_origin("http://localhost:5173")
+                .supports_credentials()
+                .max_age(3600))
             .wrap(if let Environment::Development = config.environment {
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_http_only(true)

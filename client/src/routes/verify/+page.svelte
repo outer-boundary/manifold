@@ -5,7 +5,7 @@
 	onMount(() => {
 		const token = new URLSearchParams(window.location.search).get("token");
 		if (!token) {
-			throw error(307, "your token is gone bitch");
+			throw error(307, "Could not get the token from the URL search parameters");
 		}
 		fetch("http://localhost:8080/api/auth/verify", {
 			method: "POST",
@@ -20,4 +20,4 @@
 	});
 </script>
 
-<div><p style={"color: white"}>bitchchchchchchch ch</p></div>
+<div><p style={"color: white"}>Verifying...</p></div>
