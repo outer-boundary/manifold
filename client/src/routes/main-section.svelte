@@ -1,5 +1,4 @@
 <script lang="ts">
-	let asd = 2;
 </script>
 
 <div class="mainSection">

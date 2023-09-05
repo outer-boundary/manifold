@@ -12,7 +12,7 @@ const config = {
 			directives: {
 				"default-src": ["self"],
 				"img-src": ["self", "https://external-content.duckduckgo.com"],
-				"script-src": ["self", "unsafe-inline"],
+				"script-src": ["self", "unsafe-inline", "inline"],
 				"style-src": ["self", "unsafe-inline"],
 				// Vite uses WebSockets for HMR, so WebSocket connections to localhost:5173 are whitelisted during development
 				"connect-src":
@@ -22,6 +22,8 @@ const config = {
 								"self",
 								"ws://localhost:5173",
 								"ws://localhost:5183",
+								"http://localhost:5173",
+								"http://localhost:8080",
 								"api.iconify.design",
 								"api.simplesvg.com",
 								"api.unisvg.com"

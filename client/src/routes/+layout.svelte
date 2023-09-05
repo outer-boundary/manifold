@@ -2,6 +2,11 @@
 	import Sidebar from "./sidebar.svelte";
 	import MainSection from "./main-section.svelte";
 	import Overlay from "./overlay.svelte";
+	import { onMount } from "svelte";
+
+	onMount(() => {
+		
+	});
 </script>
 
 <div class="main">
