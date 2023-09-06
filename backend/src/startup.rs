@@ -61,6 +61,8 @@ async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -
         App::new()
             .wrap(Cors::default()
                 .allowed_origin("http://localhost:5173")
+                .allow_any_header()
+                .allow_any_method()
                 .supports_credentials()
                 .max_age(3600))
             .wrap(if let Environment::Development = config.environment {
