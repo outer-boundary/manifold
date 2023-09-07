@@ -4,9 +4,7 @@
 	import Overlay from "./overlay.svelte";
 	import { onMount } from "svelte";
 
-	onMount(() => {
-		
-	});
+	onMount(() => {});
 </script>
 
 <div class="main">

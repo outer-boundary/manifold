@@ -5,14 +5,11 @@
 		const formData = new FormData(e.target as HTMLFormElement);
 
 		try {
-			await fetch("http://localhost:8080/api/users", {
+			await fetch("http://localhost:8080/api/auth/login", {
 				method: "POST",
 				body: {
-					username: formData.get("username"),
-					identity: {
-						email: formData.get("email"),
-						password: formData.get("password")
-					}
+					email: formData.get("identity"),
+					password: formData.get("password")
 				}
 			});
 		} catch (err) {
@@ -21,19 +18,17 @@
 	}
 </script>
 
-<form class="signupPage" on:submit|preventDefault={onSignup}>
-	<label for="username">Username</label>
-	<input name="username" type="text" />
-	<label for="email">Email</label>
-	<input name="email" type="email" />
+<form class="loginPage" on:submit|preventDefault={onSignup}>
+	<label for="identity">Identity</label>
+	<input name="identity" type="text" />
 	<label for="password">Password</label>
 	<input name="password" type="password" />
-	<button type="submit">Signup</button>
+	<button type="submit">Login</button>
 </form>
 
 <style lang="scss">
 	@import "../../styles/globalStyles.scss";
-	.signupPage {
+	.loginPage {
 		display: flex;
 		flex-direction: column;
 		color: $mainTextColour;
