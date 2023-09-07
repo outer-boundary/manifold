@@ -2,6 +2,8 @@
 	import Icon from "@iconify/svelte";
 	import { goto } from "$app/navigation";
 	import { sidebarActions } from "../stores/sidebarActions";
+	import type { TabType, TabInfo } from "../types/tabInfo";
+	import Tab from "../components/tab.svelte";
 
 	function toggleHoverEffect(tab: typeof selectedTab) {
 		if (selectedTab !== tab) {
@@ -24,7 +26,22 @@
 	const closedWidth = "80px";
 	const openWidth = "300px";
 
-	let selectedTab: "domains" | "friends" | "settings" = "domains";
+	let selectedTab: TabType = "domains";
+
+	const tabs: TabInfo[] = [
+		{
+			name: "domains",
+			icon: "filter-none-rounded"
+		},
+		{
+			name: "friends",
+			icon: "group-rounded"
+		},
+		{
+			name: "settings",
+			icon: "settings-rounded"
+		}
+	];
 </script>
 
 <div
@@ -44,45 +61,17 @@
 		/>
 	</button>
 	<div class="tabs">
-		<button
-			id="domainsTab"
-			class="tab {selectedTab === 'domains' && 'selected'}"
-			on:mouseenter={() => toggleHoverEffect("domains")}
-			on:mouseleave={() => toggleHoverEffect("domains")}
-			on:click={() => {
-				selectedTab = "domains";
-				goto("/domains");
-			}}
-		>
-			<Icon class="tabIcon" icon="material-symbols:filter-none-rounded" />
-			<p class="tabText">Domains</p>
-		</button>
-		<button
-			id="friendsTab"
-			class="tab {selectedTab === 'friends' && 'selected'}"
-			on:mouseenter={() => toggleHoverEffect("friends")}
-			on:mouseleave={() => toggleHoverEffect("friends")}
-			on:click={() => {
-				selectedTab = "friends";
-				goto("/friends");
-			}}
-		>
-			<Icon class="tabIcon" icon="material-symbols:group-rounded" />
-			<p class="tabText">Friends</p>
-		</button>
-		<button
-			id="settingsTab"
-			class="tab {selectedTab === 'settings' && 'selected'}"
-			on:mouseenter={() => toggleHoverEffect("settings")}
-			on:mouseleave={() => toggleHoverEffect("settings")}
-			on:click={() => {
-				selectedTab = "settings";
-				goto("/settings");
-			}}
-		>
-			<Icon class="tabIcon" icon="material-symbols:settings-rounded" />
-			<p class="tabText">Settings</p>
-		</button>
+		{#each tabs as tab}
+			<Tab
+				id="{tab.name}Tab"
+				className="tab {selectedTab === tab.name ? 'selected' : 'hoverable'}"
+				onClick={() => {
+					selectedTab = tab.name;
+					goto(`/${tab.name}`);
+				}}
+				tabInfo={tab}
+			/>
+		{/each}
 	</div>
 	<div class="tabsDivider" />
 	<div class="actions">
@@ -92,6 +81,17 @@
 				<p class="tabText">{action.text}</p>
 			</button>
 		{/each}
+	</div>
+	<div class="tabs signoutContainer">
+		<Tab
+			id="logoutTab"
+			className="tab hoverable"
+			onClick={() => {
+				selectedTab = "logout";
+				// call logout endpoint
+			}}
+			tabInfo={{ name: "logout", icon: "logout-rounded" }}
+		/>
 	</div>
 </div>
 
@@ -151,7 +151,9 @@
 		align-items: center;
 		justify-content: center;
 		border: $mainBorderWidth solid $mainElementColour;
-		transition: right $sidebarTransitionTime ease-in-out, border $sidebarTransitionTime ease-in-out;
+		transition:
+			right $sidebarTransitionTime ease-in-out,
+			border $sidebarTransitionTime ease-in-out;
 
 		// Can't style the component directly.
 		// See: https://iconify.design/docs/icon-components/svelte/color.html
@@ -196,53 +198,6 @@
 
 		&.closed {
 			padding-left: 16px;
-		}
-	}
-
-	.tab {
-		display: flex;
-		align-items: center;
-		color: $secondaryTextColour;
-		padding: 6px 7px;
-		border-top-left-radius: $mainBorderRadius;
-		border-bottom-left-radius: $mainBorderRadius;
-		background-color: transparent;
-		font-size: 1.1rem;
-		transition: background-color 120ms ease-in;
-		position: relative;
-
-		&.selected {
-			background-color: $mainAccentColour;
-			color: $mainTextColour;
-
-			& .tabText {
-				color: $mainTextColour;
-			}
-		}
-
-		& :global(*) {
-			transition: color 120ms ease-in;
-		}
-
-		$iconSize: 34px;
-		& :global(.tabIcon) {
-			min-width: $iconSize;
-			min-height: $iconSize;
-		}
-
-		& .tabText {
-			color: $secondaryTextColour;
-			position: absolute;
-			left: calc($iconSize + 14px);
-		}
-
-		&.hover {
-			background-color: #492683;
-
-			& :global(*),
-			.tabText {
-				color: $mainTextColour;
-			}
 		}
 	}
 
@@ -314,5 +269,9 @@
 				color: $mainTextColour;
 			}
 		}
+	}
+
+	.signoutContainer {
+		margin-top: auto;
 	}
 </style>

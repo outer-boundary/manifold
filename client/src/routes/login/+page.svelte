@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
 	import fetch from "../../utils/fetch";
 
-	async function onSignup(e: SubmitEvent) {
+	async function onLogin(e: SubmitEvent) {
 		const formData = new FormData(e.target as HTMLFormElement);
-
 		try {
 			await fetch("http://localhost:8080/api/auth/login", {
 				method: "POST",
@@ -15,10 +15,11 @@
 		} catch (err) {
 			console.log("Error:", (err as Error).message);
 		}
+		goto("/");
 	}
 </script>
 
-<form class="loginPage" on:submit|preventDefault={onSignup}>
+<form class="loginPage" on:submit|preventDefault={onLogin}>
 	<label for="identity">Identity</label>
 	<input name="identity" type="text" />
 	<label for="password">Password</label>
