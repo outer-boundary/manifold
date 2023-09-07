@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { fadeScale } from "../utils/transitions";
-	import { modalState, modalTransitionTime } from "../stores/modalState";
 	import Icon from "@iconify/svelte";
 	import { onMount } from "svelte";
 	import { fade } from "svelte/transition";
 	import { cubicOut } from "svelte/easing";
+	import { fadeScale } from "../../utils/transitions";
+	import { modalState, modalTransitionTime } from "../../stores/modalState";
 
 	// The width needs to be explicitly defined because of how the 'pagination' works
 	export let width: number;
@@ -95,7 +95,7 @@
 </div>
 
 <style lang="scss">
-	@import "../styles/globalStyles.scss";
+	@import "../../styles/globalStyles.scss";
 
 	$padding: 40px;
 

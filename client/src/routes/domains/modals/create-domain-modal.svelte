@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Icon from "@iconify/svelte";
-	import ModalPage from "../../../components/modal-page.svelte";
+	import ModalPage from "../../../components/modals/modal-page.svelte";
 	import Modal from "../../../components/modal.svelte";
 
 	const pageStyle = "display: flex; flex-direction: column;";
