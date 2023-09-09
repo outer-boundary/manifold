@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Icon from "@iconify/svelte";
-	import type { TabType, TabInfo } from "../types/tabInfo";
+	import type { TabInfo } from "../types/tabInfo";
 
 	export let id: string;
 	export let className: string;
@@ -37,17 +37,17 @@
 			}
 		}
 
-		& :global(*) {
+		:global(*) {
 			transition: color 120ms ease-in;
 		}
 
 		$iconSize: 34px;
-		& :global(.tabIcon) {
+		:global(.tabIcon) {
 			min-width: $iconSize;
 			min-height: $iconSize;
 		}
 
-		& .tabText {
+		.tabText {
 			color: $secondaryTextColour;
 			position: absolute;
 			left: calc($iconSize + 14px);
