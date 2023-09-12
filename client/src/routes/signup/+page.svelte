@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
 	import fetch from "../../utils/fetch";
 
 	async function onSignup(e: SubmitEvent) {
 		const formData = new FormData(e.target as HTMLFormElement);
 
 		try {
-			await fetch("http://localhost:8080/api/users", {
+			const res = await fetch("http://localhost:8080/api/users", {
 				method: "POST",
 				body: {
 					username: formData.get("username"),
@@ -15,6 +16,9 @@
 					}
 				}
 			});
+			if (res.status === 201) {
+				// TODO show a message telling the user to verify their account
+			}
 		} catch (err) {
 			console.log("Error:", (err as Error).message);
 		}
