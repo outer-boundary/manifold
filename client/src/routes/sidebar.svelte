@@ -46,7 +46,7 @@
 	<button class="collapseButton" on:click={() => manageSidebarState()}>
 		<Icon
 			class="collapseIcon"
-			icon="material-symbols:arrow-back-ios-new-rounded"
+			icon="material-symbols:arrow-left-rounded"
 			style={`rotate: ${sidebarOpenState ? "0deg" : "180deg"}`}
 		/>
 	</button>
@@ -129,8 +129,8 @@
 				filter: brightness(
 					1.45
 				); // because of the thickness of the icon, it appears much darker than the actual colour
-				width: 16px;
-				height: 16px;
+				min-width: 30px;
+				min-height: 30px;
 				transition: rotate $sidebarTransitionTime ease-in-out;
 				position: relative;
 			}
