@@ -1,18 +1,22 @@
-import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vitest/config';
-import { internalIpV4 } from 'internal-ip';
+import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig } from "vitest/config";
+import { internalIpV4 } from "internal-ip";
 
 export default defineConfig(async () => {
 	const config = {
 		plugins: [sveltekit()],
 		server: {
-			host: '0.0.0.0',
+			host: "localhost",
 			port: 5173,
 			strictPort: true,
 			hmr: {
-				protocol: 'ws',
-				host: await internalIpV4(),
+				protocol: "ws",
+				host: 'localhost',
 				port: 5183
+			},
+			// Allow serving files from the public folder
+			fs: {
+				allow: ["public"]
 			}
 		},
 		build: {
@@ -27,7 +31,14 @@ export default defineConfig(async () => {
 			assetsInlineLimit: 0
 		},
 		test: {
-			include: ['src/**/*.{test,spec}.{js,ts}']
+			include: ["src/**/*.{test,spec}.{js,ts}"]
+		},
+		css: {
+			preprocessorOptions: {
+				scss: {
+					additionalData: `@import './src/styles/globalStyles.scss';`
+				}
+			}
 		}
 	};
 

@@ -35,7 +35,7 @@ pub async fn login_user(
             }?;
 
             if is_login_successful {
-                create_session_for_user(user_id, login_identity.identifier(), session)?;
+                create_session_for_user(user_id, login_identity.identifier(), session, db_pool).await?;
             }
 
             Ok((Some(user_id), is_login_successful))
@@ -45,10 +45,18 @@ pub async fn login_user(
 }
 
 #[tracing::instrument(skip(session))]
-pub fn logout_user(session: &actix_session::Session) -> Result<Option<Uuid>> {
+pub async fn logout_user(session: &actix_session::Session, db_pool: &MySqlPool) -> Result<Option<Uuid>> {
     let user_id = get_user_id_from_session(session)?;
 
     session.purge();
+
+    // Remove session information from the database
+    sqlx::query!(
+        "DELETE FROM login_sessions WHERE user_id = ?",
+        user_id,
+    )
+    .execute(db_pool)
+    .await?;
 
     Ok(user_id)
 }
