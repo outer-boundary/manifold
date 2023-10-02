@@ -74,18 +74,14 @@ impl FromRequest for CurrentUser {
                 )),
             )?;
 
-            let user_result = get_user(user_id, db_pool)
+            let user = get_user(user_id, db_pool)
                 .await
                 .map_err(|err| {
                     ExtractorError::InternalServerError(
                         ErrorResponse::new(0, "Unable to get user from db").description(err),
                     )
-                })?;
-
-            let user = if let Some(user) = user_result {
-                user
-            } else {
-                let logout_result = async {
+                })?
+                .ok_or(async move {
                     match logout_user(&session, db_pool).await {
                         Ok(_) => ExtractorError::BadRequest(ErrorResponse::new(
                             0,
@@ -96,13 +92,12 @@ impl FromRequest for CurrentUser {
                             "User id stored in session does not match any existing user but unable to end session",
                         ).description(err)),
                     }
-                }
-                .await;
+                });
 
-                return Err(logout_result);
-            };
-
-            Ok(CurrentUser { user })
+            match user {
+                Ok(user) => Ok(CurrentUser { user }),
+                Err(err) => Err(err.await),
+            }
         })
     }
 }
