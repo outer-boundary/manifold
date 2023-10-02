@@ -13,7 +13,9 @@ use crate::{
     },
 };
 use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse};
+use macros::require_role;
 use sqlx::MySqlPool;
+use std::str::FromStr;
 use uuid::Uuid;
 
 pub fn users_scope(cfg: &mut web::ServiceConfig) {
@@ -25,16 +27,9 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 
 #[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[get("")]
+#[require_role(role = "SysAdmin")]
 async fn get_users_route(db_pool: web::Data<MySqlPool>, current_user: CurrentUser) -> HttpResponse {
     tracing::debug!("Requesting all users...");
-
-    if current_user.0.account_role != AccountRole::SysAdmin {
-        tracing::warn!("User '{}' is not a sys-admin.", current_user.0.id);
-        return HttpResponse::Forbidden().json(ErrorResponse::new(
-            0,
-            format!("User '{}' is not a sys-admin", current_user.0.id),
-        ));
-    }
 
     let users = get_users(&db_pool).await;
 

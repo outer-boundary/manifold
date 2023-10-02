@@ -4,7 +4,8 @@
   "description": "",
   "private": "true",
   "scripts": {
-    "in:backend": "cd backend &&",
+    "in:backend:root": "cd backend &&",
+    "in:backend": "cd backend/core &&",
     "in:client": "cd client &&",
     "dev:web": "run-p dev:backend dev:client:web",
     "dev:desktop": "run-p dev:backend dev:client:desktop",
@@ -13,7 +14,7 @@
     "dev:client:web": "pnpm in:client pnpm run dev:web",
     "dev:client:desktop": "pnpm in:client pnpm run dev:desktop",
     "test:backend": "pnpm in:backend cargo test -- --test-threads=1",
-    "migrations": "pnpm in:backend sqlx migrate",
+    "migrations": "pnpm in:backend:root sqlx migrate",
     "migrations:new": "pnpm run migrations add -r",
     "migrations:apply": "pnpm run migrations run",
     "migrations:revert": "pnpm run migrations revert",
