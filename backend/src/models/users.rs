@@ -125,8 +125,8 @@ impl FromRequest for CurrentUser {
                         ErrorResponse::new(0, "Unable to get user from db").description(err),
                     )
                 })?
-                .ok_or_else(||
-                    match logout_user(&session) {
+                .ok_or(async move {
+                    match logout_user(&session, db_pool).await {
                         Ok(_) => ExtractorError::BadRequest(ErrorResponse::new(
                             0,
                             "User id stored in session does not match any existing user. Session has been forcefully ended",
@@ -136,9 +136,12 @@ impl FromRequest for CurrentUser {
                             "User id stored in session does not match any existing user but unable to end session",
                         ).description(err)),
                     }
-                )?;
+                });
 
-            Ok(CurrentUser(user))
+            match user {
+                Ok(user) => Ok(CurrentUser(user)),
+                Err(err) => Err(err.await),
+            }
         })
     }
 }

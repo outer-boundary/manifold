@@ -1,2 +1,5 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import { onMount } from "svelte";
+</script>
+
+<div><p style={"color: white; font-size: 6rem;"}>This is the home page!</p></div>

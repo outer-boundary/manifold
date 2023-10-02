@@ -6,7 +6,7 @@ use crate::{
         login_identity::verify_login_identity,
     },
 };
-use actix_web::{post, web, HttpResponse};
+use actix_web::{cookie::Cookie, post, web, HttpRequest, HttpResponse};
 use sqlx::MySqlPool;
 
 pub fn auth_scope(cfg: &mut web::ServiceConfig) {
@@ -86,12 +86,15 @@ async fn login_route(
     }
 }
 
-#[tracing::instrument(skip(session))]
+#[tracing::instrument(skip(session, db_pool))]
 #[post("/logout")]
-async fn logout_route(session: actix_session::Session) -> HttpResponse {
+async fn logout_route(
+    session: actix_session::Session,
+    db_pool: web::Data<MySqlPool>,
+) -> HttpResponse {
     tracing::debug!("Logging out user...");
 
-    let result = logout_user(&session);
+    let result = logout_user(&session, &db_pool).await;
 
     match result {
         Ok(user_id) => {
