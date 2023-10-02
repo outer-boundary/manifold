@@ -22,6 +22,8 @@ const config = {
 								"self",
 								"ws://localhost:5173",
 								"ws://localhost:5183",
+								"http://localhost:5173",
+								"http://localhost:8080",
 								"api.iconify.design",
 								"api.simplesvg.com",
 								"api.unisvg.com"

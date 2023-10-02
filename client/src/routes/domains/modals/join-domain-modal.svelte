@@ -1,8 +1,8 @@
 <script>
-	import Modal from "../../../components/modal.svelte";
+	import Modal from "../../../components/modals/modal.svelte";
 </script>
 
-<Modal>
+<Modal width={200}>
 	<p style={"color: white"}>Join a domain!!!</p>
 </Modal>
 

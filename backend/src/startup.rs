@@ -9,6 +9,7 @@ use actix_web::{
     web::{scope, Data},
     App, HttpServer,
 };
+use actix_cors::Cors;
 use color_eyre::{eyre::eyre, Result};
 use sqlx::MySqlPool;
 use std::net::TcpListener;
@@ -58,6 +59,12 @@ async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -
 
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(Cors::default()
+                .allowed_origin("http://localhost:5173")
+                .allow_any_header()
+                .allow_any_method()
+                .supports_credentials()
+                .max_age(3600))
             .wrap(if let Environment::Development = config.environment {
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_http_only(true)
