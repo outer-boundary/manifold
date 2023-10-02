@@ -70,17 +70,14 @@ impl DatabaseConfiguration {
             MySqlSslMode::Preferred
         };
 
-        let mut options = MySqlConnectOptions::new()
+        MySqlConnectOptions::new()
             .host(&self.host)
             .username(&self.username)
             .password(&self.password)
             .port(self.port)
             .ssl_mode(ssl_mode)
-            .database(&self.db_name);
-
-        options.log_statements(LevelFilter::Trace);
-
-        options
+            .database(&self.db_name)
+            .log_statements(LevelFilter::Trace)
     }
 }
 

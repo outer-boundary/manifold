@@ -6,6 +6,7 @@ use crate::{
     },
     types::redis::RedisPool,
     util::{
+        configuration::{get_config, Environment},
         email::send_multipart_email,
         url::full_uri,
         users::{add_user, delete_user, get_user, get_users},
@@ -22,10 +23,18 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
         .service(delete_user_route);
 }
 
-#[tracing::instrument(skip(db_pool))]
+#[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[get("")]
-async fn get_users_route(db_pool: web::Data<MySqlPool>) -> HttpResponse {
+async fn get_users_route(db_pool: web::Data<MySqlPool>, current_user: CurrentUser) -> HttpResponse {
     tracing::debug!("Requesting all users...");
+
+    if current_user.0.account_role != AccountRole::SysAdmin {
+        tracing::warn!("User '{}' is not a sys-admin.", current_user.0.id);
+        return HttpResponse::Forbidden().json(ErrorResponse::new(
+            0,
+            format!("User '{}' is not a sys-admin", current_user.0.id),
+        ));
+    }
 
     let users = get_users(&db_pool).await;
 
@@ -44,7 +53,7 @@ async fn get_users_route(db_pool: web::Data<MySqlPool>) -> HttpResponse {
     }
 }
 
-#[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.user.id))]
+#[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[get("/{user_id}")]
 async fn get_user_route(
     db_pool: web::Data<MySqlPool>,
@@ -55,17 +64,17 @@ async fn get_user_route(
 
     tracing::debug!("Requesting user with id '{}'...", user_id);
 
-    if current_user.user.id != user_id {
+    if current_user.0.id != user_id && current_user.0.account_role != AccountRole::SysAdmin {
         tracing::warn!(
             "User '{}' trying to access details for user with id '{}'.",
-            current_user.user.id,
+            current_user.0.id,
             user_id
         );
         return HttpResponse::Forbidden().json(ErrorResponse::new(
             0,
             format!(
                 "User '{}' trying to access details for user with id '{}'",
-                current_user.user.id, user_id
+                current_user.0.id, user_id
             ),
         ));
     }
@@ -111,8 +120,31 @@ async fn add_user_route(
     redis: web::Data<RedisPool>,
     request: HttpRequest,
     new_user: web::Json<NewUser>,
+    current_user: OptionalCurrentUser,
 ) -> HttpResponse {
     tracing::debug!("Creating new user...");
+
+    let config = get_config();
+
+    if let Err(err) = config {
+        return HttpResponse::InternalServerError()
+            .json(ErrorResponse::new(0, "Unable to get app config").description(err));
+    }
+
+    if config.unwrap().environment != Environment::Development {
+        if let Some(current_user) = current_user.0 {
+            if current_user.account_role != AccountRole::SysAdmin {
+                tracing::warn!("User '{}' is not a sys-admin.", current_user.id);
+                return HttpResponse::Forbidden().json(ErrorResponse::new(
+                    0,
+                    format!("User '{}' is not a sys-admin", current_user.id),
+                ));
+            }
+        } else {
+            tracing::warn!("No active session");
+            return HttpResponse::Forbidden().json(ErrorResponse::new(0, "No active session"));
+        }
+    }
 
     // Create the user
     let user = add_user(new_user.clone(), &db_pool).await;
@@ -171,7 +203,7 @@ async fn add_user_route(
     }
 }
 
-#[tracing::instrument(skip(db_pool))]
+#[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[delete("/{user_id}")]
 async fn delete_user_route(
     db_pool: web::Data<MySqlPool>,
@@ -182,17 +214,17 @@ async fn delete_user_route(
 
     tracing::debug!("Deleting user with id '{}'...", user_id);
 
-    if current_user.user.id != user_id {
+    if current_user.0.id != user_id && current_user.0.account_role != AccountRole::SysAdmin {
         tracing::warn!(
             "User '{}' trying to delete user with id '{}'.",
-            current_user.user.id,
+            current_user.0.id,
             user_id
         );
         return HttpResponse::Forbidden().json(ErrorResponse::new(
             0,
             format!(
                 "User '{}' trying to delete user with id '{}'",
-                current_user.user.id, user_id
+                current_user.0.id, user_id
             ),
         ));
     }
