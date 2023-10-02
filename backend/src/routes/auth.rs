@@ -58,10 +58,7 @@ async fn login_route(
     match login_result {
         Ok((Some(user_id), true)) => {
             tracing::info!("Successfully logged in user with id '{}'.", user_id);
-            let res = HttpResponse::NoContent().finish();
-            res.cookies()
-                .for_each(|cookie| tracing::debug!("cookie: {}", cookie));
-            res
+            HttpResponse::NoContent().finish()
         }
         Ok((user_id, false)) => {
             if let Some(user_id) = user_id {
