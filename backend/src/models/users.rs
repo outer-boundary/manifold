@@ -74,15 +74,19 @@ impl FromRequest for CurrentUser {
                 )),
             )?;
 
-            let user = get_user(user_id, db_pool)
+            let user_result = get_user(user_id, db_pool)
                 .await
                 .map_err(|err| {
                     ExtractorError::InternalServerError(
                         ErrorResponse::new(0, "Unable to get user from db").description(err),
                     )
-                })?
-                .ok_or_else(||
-                    match logout_user(&session) {
+                })?;
+
+            let user = if let Some(user) = user_result {
+                user
+            } else {
+                let logout_result = async {
+                    match logout_user(&session, db_pool).await {
                         Ok(_) => ExtractorError::BadRequest(ErrorResponse::new(
                             0,
                             "User id stored in session does not match any existing user. Session has been forcefully ended",
@@ -92,7 +96,11 @@ impl FromRequest for CurrentUser {
                             "User id stored in session does not match any existing user but unable to end session",
                         ).description(err)),
                     }
-                )?;
+                }
+                .await;
+
+                return Err(logout_result);
+            };
 
             Ok(CurrentUser { user })
         })

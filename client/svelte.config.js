@@ -12,7 +12,7 @@ const config = {
 			directives: {
 				"default-src": ["self"],
 				"img-src": ["self", "https://external-content.duckduckgo.com"],
-				"script-src": ["self", "unsafe-inline", "inline"],
+				"script-src": ["self", "unsafe-inline"],
 				"style-src": ["self", "unsafe-inline"],
 				// Vite uses WebSockets for HMR, so WebSocket connections to localhost:5173 are whitelisted during development
 				"connect-src":

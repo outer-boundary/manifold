@@ -1,2 +1,2 @@
 -- Add down migration script here
-DROP TABLE user_sessions;
+DROP TABLE login_sessions;

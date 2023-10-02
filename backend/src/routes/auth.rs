@@ -6,7 +6,7 @@ use crate::{
         login_identity::verify_login_identity,
     },
 };
-use actix_web::{post, web, HttpResponse};
+use actix_web::{post, web, HttpResponse, HttpRequest, cookie::Cookie};
 use sqlx::MySqlPool;
 
 pub fn auth_scope(cfg: &mut web::ServiceConfig) {
@@ -50,6 +50,7 @@ async fn login_route(
     login_identity: web::Json<ClientLoginIdentity>,
     db_pool: web::Data<MySqlPool>,
     session: actix_session::Session,
+    request: HttpRequest,
 ) -> HttpResponse {
     tracing::debug!("Logging in user...");
 
@@ -58,7 +59,11 @@ async fn login_route(
     match login_result {
         Ok((Some(user_id), true)) => {
             tracing::info!("Successfully logged in user with id '{}'.", user_id);
-            HttpResponse::NoContent().finish()
+            let res = HttpResponse::NoContent().finish();
+            res.cookies().for_each(|cookie| {
+                tracing::debug!("cookie: {}", cookie)
+            });
+            res
         }
         Ok((user_id, false)) => {
             if let Some(user_id) = user_id {
@@ -86,12 +91,12 @@ async fn login_route(
     }
 }
 
-#[tracing::instrument(skip(session))]
+#[tracing::instrument(skip(session, db_pool))]
 #[post("/logout")]
-async fn logout_route(session: actix_session::Session) -> HttpResponse {
+async fn logout_route(session: actix_session::Session, db_pool: web::Data<MySqlPool>) -> HttpResponse {
     tracing::debug!("Logging out user...");
 
-    let result = logout_user(&session);
+    let result = logout_user(&session, &db_pool).await;
 
     match result {
         Ok(user_id) => {

@@ -4,18 +4,7 @@
 	import { sidebarActions } from "../stores/sidebarActions";
 	import type { TabType, TabInfo } from "../types/tabInfo";
 	import Tab from "../components/tab.svelte";
-
-	function manageSidebarState() {
-		sidebarOpenState = !sidebarOpenState;
-
-		const sidebar = document.getElementById("sidebar")!;
-		const elements = sidebar.querySelectorAll(
-			".tabText, .tabs, .title, .actions, .titleContainer, .collapseButton, .titleDivider, .tabsDivider"
-		) as NodeListOf<HTMLElement>;
-		for (const element of elements) {
-			element.classList.toggle("closed");
-		}
-	}
+	import fetch from "../utils/fetch";
 
 	let sidebarOpenState = true;
 	const closedWidth = "80px";
@@ -37,6 +26,30 @@
 			icon: "settings-rounded"
 		}
 	];
+
+	function manageSidebarState() {
+		sidebarOpenState = !sidebarOpenState;
+
+		const sidebar = document.getElementById("sidebar")!;
+		const elements = sidebar.querySelectorAll(
+			".tabText, .tabs, .title, .actions, .titleContainer, .collapseButton, .titleDivider, .tabsDivider"
+		) as NodeListOf<HTMLElement>;
+		for (const element of elements) {
+			element.classList.toggle("closed");
+		}
+	}
+
+	async function logout() {
+		selectedTab = "logout";
+		try {
+			await fetch("http://localhost:8080/api/auth/logout", {
+				method: "POST"
+			});
+			goto("/login");
+		} catch (error) {
+			console.error((error as Error).message);
+		}
+	}
 </script>
 
 <div
@@ -82,10 +95,7 @@
 			<Tab
 				id="logoutTab"
 				className="tab hoverable"
-				onClick={() => {
-					selectedTab = "logout";
-					// call logout endpoint
-				}}
+				onClick={logout}
 				tabInfo={{ name: "logout", icon: "logout-rounded" }}
 			/>
 		</div>

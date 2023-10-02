@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
+	import { onMount } from "svelte";
 	import fetch from "../../utils/fetch";
 
 	async function onLogin(e: SubmitEvent) {
