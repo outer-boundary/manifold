@@ -159,7 +159,7 @@ impl Display for Environment {
 /// `MANIFOLD__APPLICATION_PORT=5001` for `port` to be set as `5001`
 pub fn get_config() -> Result<Configuration> {
     let base_path = std::env::current_dir()?;
-    let settings_directory = base_path.join("../settings");
+    let config_directory = base_path.join("../config");
 
     // Detect the running environment.
     // Default to `development` if unspecified.
@@ -168,9 +168,9 @@ pub fn get_config() -> Result<Configuration> {
         .try_into()?;
     let environment_filename = format!("{}.yaml", environment);
     let config = config::Config::builder()
-        .add_source(config::File::from(settings_directory.join("base.yaml")))
+        .add_source(config::File::from(config_directory.join("base.yaml")))
         .add_source(config::File::from(
-            settings_directory.join(environment_filename),
+            config_directory.join(environment_filename),
         ))
         // Add in config from environment variables (with a prefix of MANIFOLD and '__' as separator)
         // E.g. `MANIFOLD__SERVER__PORT=5001 would set `Config.server.port` to 5001.

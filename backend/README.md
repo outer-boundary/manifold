@@ -25,7 +25,7 @@ DATABASE_URL=mysql://${MANIFOLD__DATABASE__USERNAME}:${MANIFOLD__DATABASE__PASSW
 
 The `...` represent values that you need to fill in yourself.
 
-### settings/development.yaml file
+### config/development.yaml file
 
 Copy the `production.yaml` file and rename to `development.yaml`. Update the values to match your development environment.
 
