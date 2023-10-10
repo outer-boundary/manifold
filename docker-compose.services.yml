@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  redis:
+    build:
+      context: ./services
+      dockerfile: ./redis.dockerfile
+    ports:
+      - "6379:6379"
