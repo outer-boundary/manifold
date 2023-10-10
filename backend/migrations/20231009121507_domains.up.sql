@@ -15,5 +15,5 @@ CREATE TABLE domain_memberships (
 
   domain_id binary(16) NOT NULL,
   user_id binary(16) NOT NULL,
-  role_name varchar(32) NOT NULL,
-)
+  role_name varchar(32) NOT NULL
+);
