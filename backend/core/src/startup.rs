@@ -1,5 +1,5 @@
 use crate::{
-    routes::{auth::auth_scope, health_check::health_check_route, users::users_scope},
+    routes::{auth::auth_scope, health_check::health_check_route, users::users_scope, domains::domains_scope},
     util::configuration::{Configuration, DatabaseConfiguration, Environment},
 };
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
@@ -80,7 +80,8 @@ async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -
                 scope("/api")
                     .service(health_check_route)
                     .service(scope("/users").configure(users_scope))
-                    .service(scope("/auth").configure(auth_scope)),
+                    .service(scope("/auth").configure(auth_scope))
+                    .service(scope("/domains").configure(domains_scope))
             )
     })
     .listen(listener)?

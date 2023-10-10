@@ -1,3 +1,5 @@
+use chrono::NaiveDateTime;
+
 pub struct NewDomain {
     pub display_name: String,
     pub description_text: Option<String>,

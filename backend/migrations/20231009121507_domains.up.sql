@@ -15,5 +15,6 @@ CREATE TABLE domain_memberships (
 
   domain_id binary(16) NOT NULL,
   user_id binary(16) NOT NULL,
-  role_name varchar(32) NOT NULL,
-)
+
+  role_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
+);

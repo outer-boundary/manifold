@@ -6,7 +6,7 @@ use crate::{
         login_identity::verify_login_identity,
     },
 };
-use actix_web::{cookie::Cookie, post, web, HttpRequest, HttpResponse};
+use actix_web::{post, web, HttpResponse};
 use sqlx::MySqlPool;
 
 pub fn auth_scope(cfg: &mut web::ServiceConfig) {
