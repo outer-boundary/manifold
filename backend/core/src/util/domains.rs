@@ -1,15 +1,26 @@
+use sqlx::MySqlPool;
+use uuid::Uuid;
+use color_eyre::Result;
+
 use crate::models::domains::*;
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn create_domain(id: Uuid, db_pool: &MySqlPool) -> Result<Option<Domain>> {
+pub async fn create_domain(domain: NewDomain, db_pool: &MySqlPool) -> Result<()> {
+    let id = Uuid::new_v4();
   
-    let user = sqlx::query_as!(
-        User,
-        "SELECT id AS `id: Uuid`, username, account_role AS `account_role: AccountRole`, created_at, updated_at FROM users WHERE id = ?",
-        id
+    sqlx::query_as!(
+        Domain,
+        "INSERT INTO domains (id, display_name, description_text, icon_url, banner_url) VALUES (?, ?, ?, ?, ?)",
+        id,
+        domain.display_name,
+        domain.description_text.unwrap_or_else(|| String::from("")),
+        domain.icon_url.unwrap_or_else(|| String::from("")),
+        domain.banner_url.unwrap_or_else(|| String::from("")),
     )
-    .fetch_optional(db_pool)
+    .execute(db_pool)
     .await?;
 
-    Ok(user)
+    // add the user that created the domain as the owner
+
+    Ok(())
 }

@@ -1,12 +1,12 @@
 use crate::{
-  models::{error::ErrorResponse},
+  models::error::ErrorResponse,
   types::redis::RedisPool,
 };
 use actix_web::{cookie::Cookie, post, web, HttpRequest, HttpResponse};
 use sqlx::MySqlPool;
 
 pub fn domains_scope(cfg: &mut web::ServiceConfig) {
-  cfg.service(create_domain_route)
+  cfg.service(create_domain_route);
 }
 
 #[tracing::instrument(skip(db_pool, redis, token))]
