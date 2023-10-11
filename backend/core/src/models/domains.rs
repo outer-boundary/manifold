@@ -10,6 +10,8 @@ pub struct NewDomain {
     
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
+
+    pub public: bool
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -23,8 +25,13 @@ pub struct Domain {
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
 
+    pub public: bool,
+
     pub created_at: NaiveDateTime,
+
 }
+
+pub struct DomainWithMemberships (Domain, Vec<DomainMembership>);
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]

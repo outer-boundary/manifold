@@ -170,20 +170,20 @@ async fn add_user_route(
                     }
                     Err(err) => {
                         tracing::error!(
-                                    "Error occurred while trying to send verification email to user with id '{}'. {}",
-                                    user.id,
-                                    err
-                                );
+                            "Error occurred while trying to send verification email to user with id '{}'. {}",
+                            user.id,
+                            err
+                        );
                         HttpResponse::InternalServerError().json(
-                                    ErrorResponse::new(
-                                        0,
-                                        format!(
-                                            "Error occurred while trying to send verification email to user with id '{}'",
-                                            user.id
-                                        ),
-                                    )
-                                    .description(err),
-                                )
+                            ErrorResponse::new(
+                                0,
+                                format!(
+                                    "Error occurred while trying to send verification email to user with id '{}'",
+                                    user.id
+                                ),
+                            )
+                            .description(err),
+                        )
                     }
                 }
             }

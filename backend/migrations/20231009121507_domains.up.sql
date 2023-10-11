@@ -6,6 +6,8 @@ CREATE TABLE domains (
   
   icon_url varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   banner_url varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+
+  public boolean NOT NULL,
   
   created_at datetime NOT NULL DEFAULT current_timestamp
 );
