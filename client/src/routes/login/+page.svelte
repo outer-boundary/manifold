@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import { onMount } from "svelte";
 	import fetch from "../../utils/fetch";
 
 	async function onLogin(e: SubmitEvent) {
@@ -28,6 +27,9 @@
 	<label for="password">Password</label>
 	<input name="password" type="password" />
 	<button type="submit">Login</button>
+	<button class="noAccount" on:click={() => goto("/signup")}
+		>Don't have an account? <span class="signup">Signup</span></button
+	>
 </form>
 
 <style lang="scss">
@@ -45,6 +47,19 @@
 
 		button {
 			padding: 4px;
+		}
+
+		.noAccount {
+			margin-top: 6px;
+			margin-left: auto;
+			background: none;
+			color: rgb(85, 85, 85);
+
+			.signup {
+				color: $mainAccentColour;
+				font-weight: 600;
+				cursor: pointer;
+			}
 		}
 	}
 </style>
