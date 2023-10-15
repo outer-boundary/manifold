@@ -49,6 +49,10 @@ compiler.
 
 Follow [these instructions](https://docs.docker.com/desktop/install/windows-install/) to get set up with docker on Windows.
 
+### DBeaver
+
+Follow [these instructions](https://www.cockroachlabs.com/docs/v23.1/dbeaver) to install DBeaver and connect it to CockroachDB in docker, which will allow you to manage your database locally.
+
 ---
 
 ## Database
