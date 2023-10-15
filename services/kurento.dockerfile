@@ -1,0 +1,1 @@
+FROM kurento/kurento-media-server:latest

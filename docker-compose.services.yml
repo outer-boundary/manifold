@@ -6,3 +6,10 @@ services:
       dockerfile: ./redis.dockerfile
     ports:
       - "6379:6379"
+  kurento:
+    build:
+      context: ./services
+      dockerfile: ./kurento.dockerfile
+    ports:
+      - "8888:8888"
+    network_mode: "host"
