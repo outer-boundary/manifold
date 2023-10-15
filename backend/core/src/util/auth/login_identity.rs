@@ -1,7 +1,9 @@
-use crate::{models::login_identity::*, types::redis::RedisPool};
+use crate::{
+    models::login_identity::*,
+    types::{db::DBPool, redis::RedisPool},
+};
 use color_eyre::{eyre::eyre, Result};
 use futures::prelude::*;
-use sqlx::MySqlPool;
 use uuid::Uuid;
 
 use super::{password::hash_password, tokens::verify_confirmation_token};
@@ -10,7 +12,7 @@ use super::{password::hash_password, tokens::verify_confirmation_token};
 pub async fn get_login_identity(
     user_id: Uuid,
     li_type: LoginIdentityType,
-    db_pool: &MySqlPool,
+    db_pool: &DBPool,
 ) -> Result<Option<LoginIdentity>> {
     let li = match li_type {
         LoginIdentityType::Email => {
@@ -30,10 +32,7 @@ pub async fn get_login_identity(
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn get_login_identities(
-    user_id: Uuid,
-    db_pool: &MySqlPool,
-) -> Result<Vec<LoginIdentity>> {
+pub async fn get_login_identities(user_id: Uuid, db_pool: &DBPool) -> Result<Vec<LoginIdentity>> {
     let all_li: Vec<LoginIdentity> = futures::stream::iter(LoginIdentityType::all())
         .then(|li_type| async move { get_login_identity(user_id, li_type.clone(), db_pool).await })
         .try_collect::<Vec<Option<LoginIdentity>>>()
@@ -49,7 +48,7 @@ pub async fn get_login_identities(
 pub async fn add_login_identity(
     user_id: Uuid,
     new_li: ClientLoginIdentity,
-    db_pool: &MySqlPool,
+    db_pool: &DBPool,
 ) -> Result<()> {
     match new_li {
         ClientLoginIdentity::Email(li) => {
@@ -76,7 +75,7 @@ pub async fn add_login_identity(
 pub async fn delete_login_identity(
     user_id: Uuid,
     li_type: LoginIdentityType,
-    db_pool: &MySqlPool,
+    db_pool: &DBPool,
 ) -> Result<()> {
     match li_type {
         LoginIdentityType::Email => {
@@ -93,7 +92,7 @@ pub async fn delete_login_identity(
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn delete_all_login_identities(user_id: Uuid, db_pool: &MySqlPool) -> Result<()> {
+pub async fn delete_all_login_identities(user_id: Uuid, db_pool: &DBPool) -> Result<()> {
     futures::stream::iter(LoginIdentityType::all())
         .then(
             |li_type| async move { delete_login_identity(user_id, li_type.clone(), db_pool).await },
@@ -107,7 +106,7 @@ pub async fn delete_all_login_identities(user_id: Uuid, db_pool: &MySqlPool) -> 
 #[tracing::instrument(skip(db_pool, redis))]
 pub async fn verify_login_identity(
     token: String,
-    db_pool: &MySqlPool,
+    db_pool: &DBPool,
     redis: &RedisPool,
 ) -> Result<Uuid> {
     let token = verify_confirmation_token(token, redis, false).await?;
@@ -132,7 +131,7 @@ pub async fn verify_login_identity(
 pub async fn set_login_identity_verified(
     user_id: Uuid,
     li_type: LoginIdentityType,
-    db_pool: &MySqlPool,
+    db_pool: &DBPool,
 ) -> Result<()> {
     match li_type {
         LoginIdentityType::Email => {
@@ -151,7 +150,7 @@ pub async fn set_login_identity_verified(
 #[tracing::instrument(skip(db_pool))]
 pub async fn get_user_id_from_login_identity(
     login_identity: ClientLoginIdentity,
-    db_pool: &MySqlPool,
+    db_pool: &DBPool,
 ) -> Result<Option<Uuid>> {
     let user_id = match login_identity {
         ClientLoginIdentity::Email(li) => sqlx::query!(

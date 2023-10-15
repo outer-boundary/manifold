@@ -1,8 +1,10 @@
 use color_eyre::Result;
-use sqlx::{mysql::MySqlPoolOptions, Executor, MySqlPool};
+use sqlx::{mysql::MySqlPoolOptions, Executor};
+
+use crate::types::db::DBPool;
 
 pub struct TestPool {
-    pub db_pool: MySqlPool,
+    pub db_pool: DBPool,
 }
 
 impl TestPool {
@@ -19,7 +21,7 @@ impl TestPool {
         Ok(TestPool { db_pool })
     }
 
-    pub fn get(&self) -> MySqlPool {
+    pub fn get(&self) -> DBPool {
         self.db_pool.clone()
     }
 }

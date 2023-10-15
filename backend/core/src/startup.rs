@@ -1,5 +1,6 @@
 use crate::{
     routes::{auth::auth_scope, health_check::health_check_route, users::users_scope},
+    types::db::DBPool,
     util::configuration::{Configuration, DatabaseConfiguration, Environment},
 };
 use actix_cors::Cors;
@@ -11,7 +12,6 @@ use actix_web::{
     App, HttpServer,
 };
 use color_eyre::{eyre::eyre, Result};
-use sqlx::MySqlPool;
 use std::net::TcpListener;
 
 pub struct Application {
@@ -20,7 +20,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(config: Configuration, test_pool: Option<MySqlPool>) -> Result<Self> {
+    pub async fn build(config: Configuration, test_pool: Option<DBPool>) -> Result<Self> {
         let db_pool = if let Some(db_pool) = test_pool {
             db_pool
         } else {
@@ -47,11 +47,11 @@ impl Application {
     }
 }
 
-pub async fn get_connection_pool(config: &DatabaseConfiguration) -> MySqlPool {
-    MySqlPool::connect_lazy_with(config.connect_to_db())
+pub async fn get_connection_pool(config: &DatabaseConfiguration) -> DBPool {
+    DBPool::connect_lazy_with(config.connect_to_db())
 }
 
-async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -> Result<Server> {
+async fn run(listener: TcpListener, db_pool: DBPool, config: Configuration) -> Result<Server> {
     let redis_config = deadpool_redis::Config::from_url(config.redis.url);
     let redis_pool = redis_config.create_pool(Some(deadpool_redis::Runtime::Tokio1))?;
 

@@ -1,11 +1,10 @@
 use super::auth::login_identity::{add_login_identity, delete_all_login_identities};
-use crate::models::users::*;
+use crate::{models::users::*, types::db::DBPool};
 use color_eyre::{eyre::eyre, Result};
-use sqlx::MySqlPool;
 use uuid::Uuid;
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
+pub async fn get_user(id: Uuid, db_pool: &DBPool) -> Result<Option<User>> {
     let user = sqlx::query_as!(
         User,
         "SELECT id AS `id: Uuid`, username, account_role AS `account_role: AccountRole`, created_at, updated_at FROM users WHERE id = ?",
@@ -18,7 +17,7 @@ pub async fn get_user(id: Uuid, db_pool: &MySqlPool) -> Result<Option<User>> {
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
+pub async fn get_users(db_pool: &DBPool) -> Result<Vec<User>> {
     let users = sqlx::query_as!(
         User,
         "SELECT id AS `id: Uuid`, username, account_role AS `account_role: AccountRole`, created_at, updated_at FROM users ORDER BY id"
@@ -30,7 +29,7 @@ pub async fn get_users(db_pool: &MySqlPool) -> Result<Vec<User>> {
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> Result<User> {
+pub async fn add_user(new_user: NewUser, db_pool: &DBPool) -> Result<User> {
     let id = Uuid::new_v4();
 
     sqlx::query!(
@@ -67,7 +66,7 @@ pub async fn add_user(new_user: NewUser, db_pool: &MySqlPool) -> Result<User> {
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn delete_user(id: Uuid, db_pool: &MySqlPool) -> Result<()> {
+pub async fn delete_user(id: Uuid, db_pool: &DBPool) -> Result<()> {
     // Delete all of a user's login identities before deleting the actual user.
     delete_all_login_identities(id, db_pool).await?;
 

@@ -4,7 +4,7 @@ use crate::{
         login_identity::{ClientLoginIdentity, LoginIdentityType},
         users::*,
     },
-    types::redis::RedisPool,
+    types::{db::DBPool, redis::RedisPool},
     util::{
         configuration::{get_config, Environment},
         email::send_multipart_email,
@@ -14,7 +14,6 @@ use crate::{
 };
 use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse};
 use macros::require_role;
-use sqlx::MySqlPool;
 use std::str::FromStr;
 use uuid::Uuid;
 
@@ -28,7 +27,7 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 #[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[get("")]
 #[require_role(role = "SysAdmin")]
-async fn get_users_route(db_pool: web::Data<MySqlPool>, current_user: CurrentUser) -> HttpResponse {
+async fn get_users_route(db_pool: web::Data<DBPool>, current_user: CurrentUser) -> HttpResponse {
     tracing::debug!("Requesting all users...");
 
     let users = get_users(&db_pool).await;
@@ -51,7 +50,7 @@ async fn get_users_route(db_pool: web::Data<MySqlPool>, current_user: CurrentUse
 #[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[get("/{user_id}")]
 async fn get_user_route(
-    db_pool: web::Data<MySqlPool>,
+    db_pool: web::Data<DBPool>,
     user_id: web::Path<Uuid>,
     current_user: CurrentUser,
 ) -> HttpResponse {
@@ -111,7 +110,7 @@ async fn get_user_route(
 #[tracing::instrument(skip(db_pool, redis, request))]
 #[post("")]
 async fn add_user_route(
-    db_pool: web::Data<MySqlPool>,
+    db_pool: web::Data<DBPool>,
     redis: web::Data<RedisPool>,
     request: HttpRequest,
     new_user: web::Json<NewUser>,
@@ -201,7 +200,7 @@ async fn add_user_route(
 #[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[delete("/{user_id}")]
 async fn delete_user_route(
-    db_pool: web::Data<MySqlPool>,
+    db_pool: web::Data<DBPool>,
     user_id: web::Path<Uuid>,
     current_user: CurrentUser,
 ) -> HttpResponse {

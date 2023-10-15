@@ -1,6 +1,7 @@
 use super::{error::ExtractorError, login_identity::ClientLoginIdentity};
 use crate::{
     models::error::ErrorResponse,
+    types::db::DBPool,
     util::{
         auth::{login::logout_user, session::get_user_id_from_session},
         users::get_user,
@@ -11,7 +12,7 @@ use actix_web::{dev::Payload, web, FromRequest, HttpRequest};
 use chrono::NaiveDateTime;
 use futures::Future;
 use serde::{Deserialize, Serialize};
-use sqlx::{MySql, MySqlPool};
+use sqlx::MySql;
 use std::{pin::Pin, str::FromStr};
 use uuid::Uuid;
 
@@ -127,12 +128,12 @@ impl FromRequest for CurrentUser {
                     "No active session",
                 )))?;
 
-            let db_pool = req.app_data::<web::Data<MySqlPool>>().ok_or(
-                ExtractorError::InternalServerError(ErrorResponse::new(
-                    0,
-                    "Unable to get the db pool",
-                )),
-            )?;
+            let db_pool =
+                req.app_data::<web::Data<DBPool>>()
+                    .ok_or(ExtractorError::InternalServerError(ErrorResponse::new(
+                        0,
+                        "Unable to get the db pool",
+                    )))?;
 
             let user = get_user(user_id, db_pool)
                 .await
