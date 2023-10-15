@@ -10,3 +10,6 @@ services:
       - "26257:26257"
       - "8081:8080"
     command: start-single-node --insecure
+    environment:
+      - COCKROACH_USER=root
+      - COCKROACH_DATABASE=core

@@ -15,7 +15,7 @@
     "dev:backend:watch": "run-p services:start \"in:backend cargo watch -x run\"",
     "dev:client:web": "pnpm in:client pnpm run dev:web",
     "dev:client:desktop": "pnpm in:client pnpm run dev:desktop",
-    "services": "docker-compose -f services.docker-compose.yml",
+    "services": "docker-compose -f docker-compose.services.yml",
     "services:start": "pnpm run services up -d",
     "services:logs": "pnpm run services logs",
     "services:stop": "pnpm run services down",

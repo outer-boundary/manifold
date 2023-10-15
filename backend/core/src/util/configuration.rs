@@ -40,12 +40,7 @@ pub struct RedisConfiguration {
 
 #[derive(Deserialize, Clone)]
 pub struct DatabaseConfiguration {
-    pub username: String,
-    pub password: String,
-    pub host: String,
-    pub port: u16,
-    pub db_name: String,
-    pub require_ssl: bool,
+    pub url: String,
 }
 
 #[derive(Deserialize, Clone)]
@@ -163,7 +158,7 @@ pub fn get_config() -> Result<Configuration> {
 
     // Detect the running environment.
     // Default to `development` if unspecified.
-    let environment: Environment = std::env::var("MANIFOLD_ENVIRONMENT")
+    let environment: Environment = std::env::var("MANIFOLD__ENVIRONMENT")
         .unwrap_or_else(|_| "development".into())
         .try_into()?;
     let environment_filename = format!("{}.yaml", environment);
