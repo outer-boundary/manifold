@@ -1,19 +1,18 @@
+-- Domains table
 CREATE TABLE domains (
-  id binary(16) PRIMARY KEY NOT NULL,
-
-  display_name varchar(48) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
-  description_text varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  
-  icon_url varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  banner_url varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  
-  created_at datetime NOT NULL DEFAULT current_timestamp
+    id UUID PRIMARY KEY NOT NULL,
+    display_name VARCHAR(48) NOT NULL UNIQUE,
+    description_text VARCHAR(512) NOT NULL,
+    icon_url VARCHAR(128) NOT NULL,
+    banner_url VARCHAR(128) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp()
 );
 
+-- Domain memberships table
 CREATE TABLE domain_memberships (
-  PRIMARY KEY (domain_id, user_id),
-
-  domain_id binary(16) NOT NULL,
-  user_id binary(16) NOT NULL,
-  role_name varchar(32) NOT NULL
+    domain_id UUID NOT NULL REFERENCES domains(id),
+    user_id UUID NOT NULL REFERENCES users(id),
+    role_name VARCHAR(32) NOT NULL,
+    PRIMARY KEY (domain_id, user_id)
 );
