@@ -11,7 +11,7 @@
     "dev:web:watch": "run-p dev:backend:watch dev:client:web",
     "dev:desktop": "run-p dev:backend dev:client:desktop",
     "dev:desktop:watch": "run-p dev:backend:watch dev:client:desktop",
-    "dev:backend": "run-p services \"in:backend cargo run\"",
+    "dev:backend": "run-p services:start \"in:backend cargo run\"",
     "dev:backend:watch": "run-p services:start \"in:backend cargo watch -x run\"",
     "dev:client:web": "pnpm in:client pnpm run dev:web",
     "dev:client:desktop": "pnpm in:client pnpm run dev:desktop",
