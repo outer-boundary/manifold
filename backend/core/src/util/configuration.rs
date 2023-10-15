@@ -1,13 +1,13 @@
 use color_eyre::{eyre::eyre, Result};
+use serde::de::Error as DeserializeError;
 use serde::{Deserialize, Deserializer};
 use sqlx::{
     mysql::{MySqlConnectOptions, MySqlSslMode},
-    ConnectOptions,
+    ConnectOptions, MySqlConnection,
 };
 use std::fmt::Display;
 use tracing::log::LevelFilter;
-
-use serde::de::Error as DeserializeError;
+use url::Url;
 
 #[derive(Deserialize, Clone)]
 pub struct Configuration {
@@ -58,21 +58,9 @@ pub struct EmailConfiguration {
 }
 
 impl DatabaseConfiguration {
-    pub fn connect_to_db(&self) -> MySqlConnectOptions {
-        let ssl_mode = if self.require_ssl {
-            MySqlSslMode::Required
-        } else {
-            MySqlSslMode::Preferred
-        };
-
-        MySqlConnectOptions::new()
-            .host(&self.host)
-            .username(&self.username)
-            .password(&self.password)
-            .port(self.port)
-            .ssl_mode(ssl_mode)
-            .database(&self.db_name)
-            .log_statements(LevelFilter::Trace)
+    pub fn connect_to_db(&self) -> Result<MySqlConnectOptions> {
+        Ok(MySqlConnectOptions::from_url(&Url::parse(&self.url)?)?
+            .log_statements(LevelFilter::Trace))
     }
 }
 

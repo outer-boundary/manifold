@@ -24,7 +24,7 @@ impl Application {
         let db_pool = if let Some(db_pool) = test_pool {
             db_pool
         } else {
-            get_connection_pool(&config.database).await
+            get_connection_pool(&config.database).await?
         };
 
         sqlx::migrate!("../migrations").run(&db_pool).await?;
@@ -47,8 +47,8 @@ impl Application {
     }
 }
 
-pub async fn get_connection_pool(config: &DatabaseConfiguration) -> DBPool {
-    DBPool::connect_lazy_with(config.connect_to_db())
+pub async fn get_connection_pool(config: &DatabaseConfiguration) -> Result<DBPool> {
+    Ok(DBPool::connect_lazy_with(config.connect_to_db()?))
 }
 
 async fn run(listener: TcpListener, db_pool: DBPool, config: Configuration) -> Result<Server> {
