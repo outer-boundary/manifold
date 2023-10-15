@@ -1,3 +1,3 @@
-use sqlx::MySqlPool;
+use sqlx::PgPool;
 
-pub type DBPool = MySqlPool;
+pub type DBPool = PgPool;

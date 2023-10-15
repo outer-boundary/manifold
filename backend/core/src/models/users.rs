@@ -9,11 +9,10 @@ use crate::{
 };
 use actix_session::Session;
 use actix_web::{dev::Payload, web, FromRequest, HttpRequest};
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use futures::Future;
 use serde::{Deserialize, Serialize};
-use sqlx::MySql;
-use std::{pin::Pin, str::FromStr};
+use std::pin::Pin;
 use uuid::Uuid;
 
 // Model representing a user entry in the users table.
@@ -25,8 +24,8 @@ pub struct User {
     pub username: String,
     pub account_role: AccountRole,
 
-    pub created_at: NaiveDateTime,
-    pub updated_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 // Model representing a user's account's role. This is a global role that applies across the whole application.
@@ -37,14 +36,15 @@ pub enum AccountRole {
     SysAdmin,
 }
 
-impl FromStr for AccountRole {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "User" | "user" => Ok(AccountRole::User),
-            "SysAdmin" | "sys-admin" => Ok(AccountRole::SysAdmin),
-            _ => Err(()),
+impl From<String> for AccountRole {
+    fn from(s: String) -> Self {
+        match s.to_lowercase().as_str() {
+            "user" => AccountRole::User,
+            "sys-admin" | "sysadmin" => AccountRole::SysAdmin,
+            _ => {
+                tracing::error!("Invalid role value: '{}'. Defaulting to user role.", s);
+                AccountRole::User
+            }
         }
     }
 }
@@ -55,33 +55,6 @@ impl ToString for AccountRole {
             AccountRole::User => "user".to_string(),
             AccountRole::SysAdmin => "sys-admin".to_string(),
         }
-    }
-}
-
-impl sqlx::Type<sqlx::MySql> for AccountRole {
-    fn type_info() -> <sqlx::MySql as sqlx::Database>::TypeInfo {
-        <String as sqlx::Type<sqlx::MySql>>::type_info()
-    }
-
-    fn compatible(ty: &<sqlx::MySql as sqlx::Database>::TypeInfo) -> bool {
-        <String as sqlx::Type<sqlx::MySql>>::compatible(ty)
-    }
-}
-
-impl<'r> sqlx::Decode<'r, MySql> for AccountRole {
-    fn decode(
-        value: <MySql as sqlx::database::HasValueRef<'r>>::ValueRef,
-    ) -> Result<Self, sqlx::error::BoxDynError> {
-        let s = <&str as sqlx::Decode<MySql>>::decode(value)?;
-        tracing::info!("{}", s);
-
-        AccountRole::from_str(s).map_err(|_| format!("Unknown variant: {}", s).into())
-    }
-}
-
-impl sqlx::Encode<'_, MySql> for AccountRole {
-    fn encode_by_ref(&self, buf: &mut Vec<u8>) -> sqlx::encode::IsNull {
-        sqlx::Encode::<MySql>::encode_by_ref(&self.to_string(), buf)
     }
 }
 

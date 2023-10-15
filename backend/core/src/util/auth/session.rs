@@ -22,7 +22,7 @@ pub async fn create_session_for_user(
     // Add session information to the database.
     // Not sure how to actually get the id of the session
     sqlx::query!(
-        "INSERT INTO login_sessions (user_id, session_id) VALUES (?, ?)",
+        "INSERT INTO login_sessions (user_id, session_id) VALUES ($1, $2)",
         user_id,
         "1"
     )

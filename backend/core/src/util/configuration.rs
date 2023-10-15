@@ -1,10 +1,8 @@
 use color_eyre::{eyre::eyre, Result};
 use serde::de::Error as DeserializeError;
 use serde::{Deserialize, Deserializer};
-use sqlx::{
-    mysql::{MySqlConnectOptions, MySqlSslMode},
-    ConnectOptions, MySqlConnection,
-};
+use sqlx::postgres::PgConnectOptions;
+use sqlx::ConnectOptions;
 use std::fmt::Display;
 use tracing::log::LevelFilter;
 use url::Url;
@@ -58,9 +56,8 @@ pub struct EmailConfiguration {
 }
 
 impl DatabaseConfiguration {
-    pub fn connect_to_db(&self) -> Result<MySqlConnectOptions> {
-        Ok(MySqlConnectOptions::from_url(&Url::parse(&self.url)?)?
-            .log_statements(LevelFilter::Trace))
+    pub fn connect_to_db(&self) -> Result<PgConnectOptions> {
+        Ok(PgConnectOptions::from_url(&Url::parse(&self.url)?)?.log_statements(LevelFilter::Trace))
     }
 }
 

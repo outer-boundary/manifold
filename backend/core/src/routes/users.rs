@@ -14,7 +14,6 @@ use crate::{
 };
 use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse};
 use macros::require_role;
-use std::str::FromStr;
 use uuid::Uuid;
 
 pub fn users_scope(cfg: &mut web::ServiceConfig) {
@@ -26,7 +25,7 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
 
 #[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
 #[get("")]
-#[require_role(role = "SysAdmin")]
+#[require_role(role = "sys-admin")]
 async fn get_users_route(db_pool: web::Data<DBPool>, current_user: CurrentUser) -> HttpResponse {
     tracing::debug!("Requesting all users...");
 
