@@ -1,7 +1,9 @@
+use chrono::{DateTime, Utc};
+
 pub struct NewDomain {
     pub display_name: String,
     pub description_text: Option<String>,
-    
+
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
 }
@@ -9,13 +11,13 @@ pub struct NewDomain {
 pub struct Domain {
     pub display_name: String,
     pub description_text: Option<String>,
-    
+
     pub icon_url: Option<String>,
     pub banner_url: Option<String>,
 
     pub memberships: Vec<DomainMembership>,
 
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTime<Utc>,
 }
 
 pub struct DomainMembership {

@@ -1,38 +1,30 @@
--- Base user table for essential user data.
+-- Base user table for essential user data
 CREATE TABLE users (
-  id binary(16) PRIMARY KEY NOT NULL,
-
-  username varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
-  account_role varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  
-  created_at datetime NOT NULL DEFAULT current_timestamp,
-  updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp
+    id UUID PRIMARY KEY NOT NULL,
+    username VARCHAR(32) NOT NULL UNIQUE,
+    account_role VARCHAR(32) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp()
 );
 
--- Table for ancillary user data.
+-- Table for ancillary user data
 CREATE TABLE user_profile (
-  user_id binary(16) PRIMARY KEY NOT NULL,
-
-  display_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-
-  first_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  last_name varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  date_of_birth date NOT NULL,
-
-  created_at datetime NOT NULL DEFAULT current_timestamp,
-  updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp
+    user_id UUID PRIMARY KEY NOT NULL REFERENCES users(id),
+    display_name VARCHAR(32) NOT NULL,
+    first_name VARCHAR(32) NOT NULL,
+    last_name VARCHAR(32) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp()
 );
 
--- Login identity table for email authentication.
+-- Login identity table for email authentication
 CREATE TABLE login_identity__email (
-  user_id binary(16) PRIMARY KEY NOT NULL,
-
-  email varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
-  password_hash varchar(255) CHARACTER SET utf8mb4 NOT NULL,
-  salt varchar(255) CHARACTER SET utf8mb4 NOT NULL,
-
-  verified boolean DEFAULT false NOT NULL,
-
-  created_at datetime NOT NULL DEFAULT current_timestamp,
-  updated_at datetime NOT NULL DEFAULT current_timestamp ON UPDATE current_timestamp
+    user_id UUID PRIMARY KEY NOT NULL REFERENCES users(id),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    salt VARCHAR(255) NOT NULL,
+    verified BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp()
 );

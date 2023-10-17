@@ -444,6 +444,7 @@ dependencies = [
  "sqlx",
  "tracing",
  "tracing-subscriber",
+ "url",
  "uuid",
  "validator",
  "validator_derive",

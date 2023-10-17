@@ -1,15 +1,15 @@
 use actix_web::{get, web, HttpResponse};
 use deadpool_redis::Pool;
-use sqlx::MySqlPool;
 
 use crate::{
     models::error::ErrorResponse,
+    types::db::DBPool,
     util::health_check::{database_connection_check, redis_connection_check},
 };
 
 #[tracing::instrument(skip(db_pool, redis))]
 #[get("/health-check")]
-async fn health_check_route(db_pool: web::Data<MySqlPool>, redis: web::Data<Pool>) -> HttpResponse {
+async fn health_check_route(db_pool: web::Data<DBPool>, redis: web::Data<Pool>) -> HttpResponse {
     tracing::debug!("Running health check route...");
 
     // Determine whether the database connection is working.

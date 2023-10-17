@@ -1,11 +1,18 @@
 version: "3.9"
 services:
   redis:
-    build:
-      context: ./services
-      dockerfile: ./redis.dockerfile
+    image: redis:7.2.1
     ports:
       - "6379:6379"
+  crdb:
+    image: cockroachdb/cockroach:v23.1.11
+    ports:
+      - "26257:26257"
+      - "8081:8080"
+    command: start-single-node --insecure
+    environment:
+      - COCKROACH_USER=root
+      - COCKROACH_DATABASE=core
   kurento:
     build:
       context: ./services

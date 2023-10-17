@@ -1,2 +1,2 @@
 -- Add down migration script here
-DROP TABLE login_sessions;
+DROP TABLE IF EXISTS login_sessions CASCADE;
