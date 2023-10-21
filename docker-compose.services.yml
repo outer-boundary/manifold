@@ -14,9 +14,7 @@ services:
       - COCKROACH_USER=root
       - COCKROACH_DATABASE=core
   kurento:
-    build:
-      context: ./services
-      dockerfile: ./kurento.dockerfile
+    image: kurento/kurento-media-server:latest
     ports:
       - "8888:8888"
     network_mode: "host"
