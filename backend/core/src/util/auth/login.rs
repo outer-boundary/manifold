@@ -57,7 +57,7 @@ pub async fn logout_user(
     session.purge();
 
     // Remove session information from the database
-    sqlx::query!("DELETE FROM login_sessions WHERE user_id = $1", user_id,)
+    sqlx::query!("DELETE FROM login_sessions WHERE user_id = $1", user_id)
         .execute(db_pool)
         .await?;
 
