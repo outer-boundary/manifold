@@ -2,6 +2,7 @@ use crate::{
     routes::{auth::auth_scope, health_check::health_check_route, users::users_scope, domains::domains_scope},
     util::configuration::{Configuration, DatabaseConfiguration, Environment},
 };
+use actix_cors::Cors;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
     cookie,
@@ -9,7 +10,6 @@ use actix_web::{
     web::{scope, Data},
     App, HttpServer,
 };
-use actix_cors::Cors;
 use color_eyre::{eyre::eyre, Result};
 use sqlx::MySqlPool;
 use std::net::TcpListener;
@@ -47,8 +47,8 @@ impl Application {
     }
 }
 
-pub async fn get_connection_pool(settings: &DatabaseConfiguration) -> MySqlPool {
-    MySqlPool::connect_lazy_with(settings.connect_to_db())
+pub async fn get_connection_pool(config: &DatabaseConfiguration) -> MySqlPool {
+    MySqlPool::connect_lazy_with(config.connect_to_db())
 }
 
 async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -> Result<Server> {
@@ -59,12 +59,14 @@ async fn run(listener: TcpListener, db_pool: MySqlPool, config: Configuration) -
 
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(Cors::default()
-                .allowed_origin("http://localhost:5173")
-                .allow_any_header()
-                .allow_any_method()
-                .supports_credentials()
-                .max_age(3600))
+            .wrap(
+                Cors::default()
+                    .allowed_origin("http://localhost:5173")
+                    .allow_any_header()
+                    .allow_any_method()
+                    .supports_credentials()
+                    .max_age(3600),
+            )
             .wrap(if let Environment::Development = config.environment {
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_http_only(true)
