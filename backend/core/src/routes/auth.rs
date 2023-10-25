@@ -6,7 +6,7 @@ use crate::{
         login_identity::verify_login_identity,
     },
 };
-use actix_web::{post, web, HttpResponse};
+use actix_web::{post, web, HttpResponse, cookie::{Cookie, SameSite}};
 use sqlx::MySqlPool;
 
 pub fn auth_scope(cfg: &mut web::ServiceConfig) {
@@ -58,7 +58,12 @@ async fn login_route(
     match login_result {
         Ok((Some(user_id), true)) => {
             tracing::info!("Successfully logged in user with id '{}'.", user_id);
-            HttpResponse::NoContent().finish()
+            let user_id_cookie = Cookie::build("user_id", user_id.to_string()).clone()
+                .secure(true)
+                .http_only(true)
+                .same_site(SameSite::Strict)
+                .finish();
+            HttpResponse::Ok().cookie(user_id_cookie).json(user_id)
         }
         Ok((user_id, false)) => {
             if let Some(user_id) = user_id {
@@ -103,7 +108,9 @@ async fn logout_route(
             } else {
                 tracing::debug!("There is no logged in user.");
             };
-            HttpResponse::NoContent().finish()
+            let mut cookie = Cookie::new("user_id", "");
+            cookie.make_removal();
+            HttpResponse::NoContent().cookie(cookie).finish()
         }
         Err(err) => {
             tracing::error!("Failed while trying to logout user. {}", err);

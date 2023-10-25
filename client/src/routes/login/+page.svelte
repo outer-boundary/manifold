@@ -5,14 +5,15 @@
 	async function onLogin(e: SubmitEvent) {
 		const formData = new FormData(e.target as HTMLFormElement);
 		try {
-			const res = await fetch("http://localhost:8080/api/auth/login", {
+			// Attempt to log the user in
+			const loginRes = await fetch("http://localhost:8080/api/auth/login", {
 				method: "POST",
 				body: {
 					email: formData.get("identity"),
 					password: formData.get("password")
 				}
 			});
-			if (res.status === 204) {
+			if (loginRes.status === 200) {
 				goto("/");
 			}
 		} catch (err) {

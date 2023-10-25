@@ -3,6 +3,7 @@
 	import MainSection from "./main-section.svelte";
 	import Overlay from "./overlay.svelte";
 	import { afterUpdate, beforeUpdate } from "svelte";
+	import { currentUserID } from "../stores/currentUser";
 
 	let showSidebar = true;
 	beforeUpdate(() => {
@@ -13,6 +14,7 @@
 
 	afterUpdate(() => {
 		document.getElementById("mainSection")!.style.borderRadius = showSidebar ? "" : "0px";
+		console.log(console.log($currentUserID));
 	});
 </script>
 

@@ -22,7 +22,7 @@
 		const descriptionText = (document.getElementById("descriptionTextArea") as HTMLInputElement)
 			.value;
 		try {
-			await fetch("http://localhost:8080/api/domains", {
+			const res = await fetch("http://localhost:8080/api/domains", {
 				method: "POST",
 				body: {
 					display_name: displayName,
@@ -39,7 +39,7 @@
 
 	async function getDomains() {
 		try {
-			const response = await fetch("http://localhost:8080/api/domains");
+			const res = await fetch(`http://localhost:8080/api/domains`);
 		} catch (err) {
 			console.log("Error:", (err as Error).message);
 		}

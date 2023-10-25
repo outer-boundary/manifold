@@ -90,14 +90,6 @@ async fn get_user_domains_route(db_pool: web::Data<MySqlPool>, user_id: web::Pat
           .description(err),
       )
     }
-    _ => {
-      let err_string = format!("Failed to get domains that user with id '{}' is a member of.", user_id);
-      tracing::error!(err_string);
-      HttpResponse::InternalServerError().json(
-      ErrorResponse::new(0, err_string)
-          .description("Unexpected value returned"),
-      )
-    }
   }
 }
 
