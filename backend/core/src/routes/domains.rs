@@ -1,13 +1,16 @@
 use crate::{
   models::{error::ErrorResponse, users::CurrentUser, domains::{NewDomain, DomainMembership}},
-  util::domains::{add_domain, get_domain, get_domain_memberships, add_domain_membership, get_user_domains},
+  util::domains::{add_domain, get_domain, get_domain_memberships, add_domain_membership},
 };
 use actix_web::{post, get, web, HttpResponse};
 use sqlx::MySqlPool;
 use uuid::Uuid;
 
 pub fn domains_scope(cfg: &mut web::ServiceConfig) {
-  cfg.service(add_domain_route);
+  cfg.service(add_domain_route)
+    .service(get_domain_route)
+    .service(add_domain_membership_route)
+    .service(get_domain_memberships_route);
 }
 
 #[tracing::instrument(skip(db_pool))]
@@ -24,7 +27,7 @@ async fn add_domain_route(
   match domain {
     Ok(domain) => {
       tracing::info!("Returning created domain.");
-        HttpResponse::Ok().json(domain)
+      HttpResponse::Ok().json(domain)
     }
     Err(err) => {
       let err_string = format!("Failed to create a domain. {}", err);
@@ -70,30 +73,6 @@ async fn get_domain_route(db_pool: web::Data<MySqlPool>, domain_id: web::Path<Uu
 }
 
 #[tracing::instrument(skip(db_pool))]
-#[get("/user/{user_id}")]
-async fn get_user_domains_route(db_pool: web::Data<MySqlPool>, user_id: web::Path<Uuid>) -> HttpResponse {
-  tracing::debug!("Getting all domains for user with id {}...", user_id);
-
-  let user_id = user_id.into_inner();
-  let domains = get_user_domains(user_id, &db_pool).await;
-
-  match domains {
-    Ok(domains) => {
-      tracing::info!("Returning domains.");
-        HttpResponse::Ok().json(domains)
-    }
-    Err(err) => {
-      let err_string = format!("Failed to get domains that user with id '{}' is a member of. {}", user_id, err);
-      tracing::error!(err_string);
-      HttpResponse::InternalServerError().json(
-      ErrorResponse::new(0,err_string)
-          .description(err),
-      )
-    }
-  }
-}
-
-#[tracing::instrument(skip(db_pool))]
 #[post("/memberships")]
 async fn add_domain_membership_route(
   db_pool: web::Data<MySqlPool>,
@@ -121,7 +100,7 @@ async fn add_domain_membership_route(
 }
 
 #[tracing::instrument(skip(db_pool))]
-#[get("/memberships/{domain_id}")]
+#[get("/{domain_id}/memberships")]
 async fn get_domain_memberships_route(db_pool: web::Data<MySqlPool>, domain_id: web::Path<Uuid>) -> HttpResponse {
   tracing::debug!("Getting all memberships for domain with id {}...", domain_id);
 

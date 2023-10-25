@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
 	import { onMount } from "svelte";
-</script>
 
-<div><p style={"color: white; font-size: 6rem;"}>This is the home page!</p></div>
+	onMount(() => {
+		goto("/domains");
+	});
+</script>

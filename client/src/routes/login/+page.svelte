@@ -14,6 +14,7 @@
 				}
 			});
 			if (loginRes.status === 200) {
+				localStorage.setItem("userID", await loginRes.json());
 				goto("/");
 			}
 		} catch (err) {

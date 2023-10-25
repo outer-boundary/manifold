@@ -1,9 +1,12 @@
 <script lang="ts">
-	import { modalState } from "../../stores/modalState";
+	import { onMount } from "svelte";
+	import modalStore from "../../stores/modalState";
 	import { sidebarActions } from "../../stores/sidebarActions";
 	import DomainCard from "./domain-card.svelte";
 	import CreateDomainModal from "./modals/create-domain-modal.svelte";
 	import JoinDomainModal from "./modals/join-domain-modal.svelte";
+	import type { Domain } from "../../stores/domainsStore";
+	import domainsStore from "../../stores/domainsStore";
 
 	const wallpapers = [
 		"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallup.net%2Fwp-content%2Fuploads%2F2016%2F03%2F10%2F343202-landscape-nature.jpg&f=1&nofb=1&ipt=168a2794fc43075e38ccc26608bdb8aaa2e068f2691aa49a3686ca0b34493134&ipo=images",
@@ -82,17 +85,36 @@
 			iconName: "material-symbols:search-rounded",
 			text: "Join Domain",
 			onClick: () => {
-				modalState.set({ component: JoinDomainModal });
+				modalStore.open(JoinDomainModal);
 			}
 		},
 		{
 			iconName: "material-symbols:add-rounded",
 			text: "Create Domain",
 			onClick: () => {
-				modalState.set({ component: CreateDomainModal });
+				modalStore.open(CreateDomainModal);
 			}
 		}
 	]);
+
+	async function getDomains(): Promise<Domain[]> {
+		try {
+			const userID = localStorage.getItem("userID");
+			const res = await fetch(`http://localhost:8080/api/users/${userID}/domains`);
+			return await res.json();
+		} catch (err) {
+			console.log("Error:", (err as Error).message);
+		}
+		return [];
+	}
+
+	onMount(async () => {
+		if ($domainsStore === undefined) {
+			const userDomains = await getDomains();
+			console.log(userDomains);
+			domainsStore.set(userDomains);
+		}
+	});
 </script>
 
 <div class="domains">
@@ -100,14 +122,16 @@
 		<p class="title">Favourites</p>
 		<div class="favouriteDomains" on:scroll={(e) => manageFavouriteDomainsFade(e)}>
 			<div class="favouriteDomainsLeftFade fade" />
-			{#each [...new Array(10)] as card}
-				<DomainCard
-					cardType="favourite"
-					name="My Cool Domain"
-					memberCount={Math.ceil(Math.random() * 50)}
-					wallpaperUrl={wallpapers[Math.floor(Math.random() * wallpapers.length)]}
-				/>
-			{/each}
+			{#if $domainsStore}
+				{#each $domainsStore as domain}
+					<DomainCard
+						cardType="favourite"
+						name={domain.displayName}
+						memberCount={Math.ceil(Math.random() * 50)}
+						wallpaperUrl={wallpapers[Math.floor(Math.random() * wallpapers.length)]}
+					/>
+				{/each}
+			{/if}
 			<div class="favouriteDomainsRightFade fade" />
 		</div>
 	</div>

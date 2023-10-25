@@ -3,6 +3,8 @@
 	import ModalPage from "../../../components/modals/modal-page.svelte";
 	import Modal from "../../../components/modals/modal.svelte";
 	import fetch from "../../../utils/fetch";
+	import modalStore from "../../../stores/modalState";
+	import domainsStore, { type Domain } from "../../../stores/domainsStore";
 
 	const pageStyle = "display: flex; flex-direction: column;";
 
@@ -25,21 +27,18 @@
 			const res = await fetch("http://localhost:8080/api/domains", {
 				method: "POST",
 				body: {
-					display_name: displayName,
-					description_text: descriptionText,
-					icon_url: "",
-					banner_url: "",
+					displayName: displayName,
+					descriptionText: descriptionText,
+					iconUrl: "",
+					bannerUrl: "",
 					public: false
 				}
 			});
-		} catch (err) {
-			console.log("Error:", (err as Error).message);
-		}
-	}
-
-	async function getDomains() {
-		try {
-			const res = await fetch(`http://localhost:8080/api/domains`);
+			if (res.status === 200) {
+				const newDomain = await res.json();
+				domainsStore.update((domains) => [...domains!, newDomain]);
+				modalStore.close();
+			}
 		} catch (err) {
 			console.log("Error:", (err as Error).message);
 		}

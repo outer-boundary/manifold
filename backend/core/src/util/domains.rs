@@ -52,6 +52,9 @@ pub async fn get_user_domains(user_id: Uuid, db_pool: &MySqlPool) -> Result<Vec<
     // Construct a vec of each domain_id as strings padded with single quotes
     let domain_ids: Vec<String> = user_memberships.iter().map(|membership| format!("'{}'", membership.domain_id)).collect();
 
+    let asd = domain_ids.join(",");
+    tracing::debug!("asdasd {asd}");
+
     let domains = sqlx::query_as!(
         Domain,
         "SELECT id AS `id: Uuid`, display_name, description_text, icon_url, banner_url, public AS `public: bool`, created_at FROM domains WHERE id IN (?)",

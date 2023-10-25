@@ -1,21 +1,21 @@
 <script lang="ts">
-	import { modalState } from "../stores/modalState";
+	import modalStore from "../stores/modalState";
 
 	function deactiveOverlay() {
 		(document.getElementById("overlay") as HTMLElement)?.classList.remove("active");
-		modalState.set({ component: null });
+		modalStore.close();
 	}
 </script>
 
 <div
 	id="overlay"
-	class:active={$modalState.component}
+	class:active={$modalStore.component}
 	on:click={deactiveOverlay}
 	on:keyup={deactiveOverlay}
 	role="none"
 >
-	{#if $modalState.component}
-		<svelte:component this={$modalState.component} />
+	{#if $modalStore.component}
+		<svelte:component this={$modalStore.component} />
 	{/if}
 </div>
 
@@ -27,7 +27,8 @@
 		height: 100vh;
 		position: absolute;
 		background-color: transparent;
-		transition: background-color calc($modalTransitionTime / 2) ease-out,
+		transition:
+			background-color calc($modalTransitionTime / 2) ease-out,
 			backdrop-filter calc($modalTransitionTime / 2) ease-out;
 		z-index: 100;
 		pointer-events: none;
