@@ -21,10 +21,6 @@ MANIFOLD__AUTHENTICATION__PEPPER=...
 
 The `...` represent values that you need to fill in yourself.
 
-### config/development.yaml file
-
-Copy the `production.yaml` file and rename to `development.yaml`. Update the values to match your development environment.
-
 ### pnpm
 
 To install pnpm, first install the latest LTS version of Node, and then run the following commands:
