@@ -1,2 +1,2 @@
-DROP TABLE domains;
-DROP TABLE domain_memberships;
+DROP TABLE IF EXISTS domain_memberships CASCADE;
+DROP TABLE IF EXISTS domains CASCADE;

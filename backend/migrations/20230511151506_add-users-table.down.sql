@@ -1,4 +1,4 @@
 -- Drop created tables.
-DROP TABLE login_identity__email;
-DROP TABLE user_profile;
-DROP TABLE users;
+DROP TABLE IF EXISTS login_identity__email CASCADE;
+DROP TABLE IF EXISTS user_profile CASCADE;
+DROP TABLE IF EXISTS users CASCADE;

@@ -1,9 +1,9 @@
 use crate::{
   models::{error::ErrorResponse, users::CurrentUser, domains::{NewDomain, DomainMembership}},
   util::domains::{add_domain, get_domain, get_domain_memberships, add_domain_membership},
+  types::{db::DBPool, redis::RedisPool},
 };
 use actix_web::{post, get, web, HttpResponse};
-use sqlx::MySqlPool;
 use uuid::Uuid;
 
 pub fn domains_scope(cfg: &mut web::ServiceConfig) {
@@ -16,7 +16,7 @@ pub fn domains_scope(cfg: &mut web::ServiceConfig) {
 #[tracing::instrument(skip(db_pool))]
 #[post("")]
 async fn add_domain_route(
-  db_pool: web::Data<MySqlPool>,
+  db_pool: web::Data<DBPool>,
   new_domain: web::Json<NewDomain>,
   current_user: CurrentUser,
 ) -> HttpResponse {
@@ -42,7 +42,7 @@ async fn add_domain_route(
 
 #[tracing::instrument(skip(db_pool))]
 #[get("/{domain_id}")]
-async fn get_domain_route(db_pool: web::Data<MySqlPool>, domain_id: web::Path<Uuid>) -> HttpResponse {
+async fn get_domain_route(db_pool: web::Data<DBPool>, domain_id: web::Path<Uuid>) -> HttpResponse {
   tracing::debug!("Getting domain with id '{}'...", domain_id);
 
   let domain_id = domain_id.into_inner();
@@ -75,7 +75,7 @@ async fn get_domain_route(db_pool: web::Data<MySqlPool>, domain_id: web::Path<Uu
 #[tracing::instrument(skip(db_pool))]
 #[post("/memberships")]
 async fn add_domain_membership_route(
-  db_pool: web::Data<MySqlPool>,
+  db_pool: web::Data<DBPool>,
   membership: web::Json<DomainMembership>,
 ) -> HttpResponse {
   tracing::debug!("Creating new domain membership...");
@@ -101,7 +101,7 @@ async fn add_domain_membership_route(
 
 #[tracing::instrument(skip(db_pool))]
 #[get("/{domain_id}/memberships")]
-async fn get_domain_memberships_route(db_pool: web::Data<MySqlPool>, domain_id: web::Path<Uuid>) -> HttpResponse {
+async fn get_domain_memberships_route(db_pool: web::Data<DBPool>, domain_id: web::Path<Uuid>) -> HttpResponse {
   tracing::debug!("Getting all memberships for domain with id {}...", domain_id);
 
   let domain_id = domain_id.into_inner();

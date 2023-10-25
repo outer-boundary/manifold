@@ -1,15 +1,17 @@
 use color_eyre::Result;
-use sqlx::{mysql::MySqlPoolOptions, Executor, MySqlPool};
+use sqlx::{postgres::PgPoolOptions, Executor};
+
+use crate::types::db::DBPool;
 
 pub struct TestPool {
-    pub db_pool: MySqlPool,
+    pub db_pool: DBPool,
 }
 
 impl TestPool {
     pub async fn connect() -> Result<Self> {
         dotenvy::dotenv()?;
 
-        let db_pool = MySqlPoolOptions::new()
+        let db_pool = PgPoolOptions::new()
             .max_connections(1)
             .connect(&std::env::var("DATABASE_URL")?)
             .await?;
@@ -19,7 +21,7 @@ impl TestPool {
         Ok(TestPool { db_pool })
     }
 
-    pub fn get(&self) -> MySqlPool {
+    pub fn get(&self) -> DBPool {
         self.db_pool.clone()
     }
 }

@@ -3,15 +3,17 @@ use super::{
     password::verify_password_hash,
     session::{create_session_for_user, get_user_id_from_session},
 };
-use crate::models::login_identity::{ClientLoginIdentity, LoginIdentity};
+use crate::{
+    models::login_identity::{ClientLoginIdentity, LoginIdentity},
+    types::db::DBPool,
+};
 use color_eyre::{eyre::eyre, Result};
-use sqlx::MySqlPool;
 use uuid::Uuid;
 
 #[tracing::instrument(skip(login_identity, db_pool, session))]
 pub async fn login_user(
     login_identity: ClientLoginIdentity,
-    db_pool: &MySqlPool,
+    db_pool: &DBPool,
     session: &actix_session::Session,
 ) -> Result<(Option<Uuid>, bool)> {
     let user_id = get_user_id_from_login_identity(login_identity.clone(), db_pool).await?;
@@ -35,7 +37,8 @@ pub async fn login_user(
             }?;
 
             if is_login_successful {
-                create_session_for_user(user_id, login_identity.identifier(), session, db_pool).await?;
+                create_session_for_user(user_id, login_identity.identifier(), session, db_pool)
+                    .await?;
             }
 
             Ok((Some(user_id), is_login_successful))
@@ -45,18 +48,18 @@ pub async fn login_user(
 }
 
 #[tracing::instrument(skip(session))]
-pub async fn logout_user(session: &actix_session::Session, db_pool: &MySqlPool) -> Result<Option<Uuid>> {
+pub async fn logout_user(
+    session: &actix_session::Session,
+    db_pool: &DBPool,
+) -> Result<Option<Uuid>> {
     let user_id = get_user_id_from_session(session)?;
 
     session.purge();
 
     // Remove session information from the database
-    sqlx::query!(
-        "DELETE FROM login_sessions WHERE user_id = ?",
-        user_id,
-    )
-    .execute(db_pool)
-    .await?;
+    sqlx::query!("DELETE FROM login_sessions WHERE user_id = $1", user_id)
+        .execute(db_pool)
+        .await?;
 
     Ok(user_id)
 }
