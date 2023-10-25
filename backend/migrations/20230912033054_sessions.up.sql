@@ -1,8 +1,7 @@
--- Add up migration script here
+-- Login sessions table
 CREATE TABLE login_sessions (
-  PRIMARY KEY (user_id, session_id),
-  user_id binary(16) NOT NULL,
-  session_id varchar(255) NOT NULL,
-  
-  created_at datetime NOT NULL DEFAULT current_timestamp
+    user_id UUID NOT NULL REFERENCES users(id),
+    session_id VARCHAR(255) NOT NULL,
+    PRIMARY KEY (user_id, session_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp()
 );

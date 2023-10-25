@@ -1,9 +1,8 @@
-use crate::types::redis::RedisPool;
+use crate::types::{db::DBPool, redis::RedisPool};
 use color_eyre::{eyre::eyre, Result};
 use deadpool_redis::redis::{cmd, Value};
-use sqlx::MySqlPool;
 
-pub async fn database_connection_check(db_pool: &MySqlPool) -> Result<()> {
+pub async fn database_connection_check(db_pool: &DBPool) -> Result<()> {
     sqlx::query("SELECT 1")
         .execute(db_pool)
         .await
