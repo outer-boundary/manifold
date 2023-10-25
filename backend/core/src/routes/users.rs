@@ -273,7 +273,7 @@ async fn delete_user_route(
 
 #[tracing::instrument(skip(db_pool))]
 #[get("/{user_id}/domains")]
-async fn get_user_domains_route(db_pool: web::Data<MySqlPool>, user_id: web::Path<Uuid>) -> HttpResponse {
+async fn get_user_domains_route(db_pool: web::Data<DBPool>, user_id: web::Path<Uuid>) -> HttpResponse {
   tracing::debug!("Getting all domains for user with id {}...", user_id);
 
   let user_id = user_id.into_inner();

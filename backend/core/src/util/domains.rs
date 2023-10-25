@@ -1,15 +1,15 @@
-use sqlx::MySqlPool;
 use uuid::Uuid;
 use color_eyre::{eyre::eyre, Result};
+use crate::types::db::DBPool;
 
 use crate::models::domains::{*};
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn add_domain(user_id: Uuid, domain: NewDomain, db_pool: &MySqlPool) -> Result<Domain> {
+pub async fn add_domain(user_id: Uuid, domain: NewDomain, db_pool: &DBPool) -> Result<Domain> {
     let id = Uuid::new_v4();
   
     sqlx::query!(
-        "INSERT INTO domains (id, display_name, description_text, icon_url, banner_url, public) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO domains (id, display_name, description_text, icon_url, banner_url, public) VALUES ($1, $2, $3, $4, $5, $6)",
         id,
         domain.display_name,
         domain.description_text.unwrap_or_else(|| String::from("")),
@@ -33,10 +33,10 @@ pub async fn add_domain(user_id: Uuid, domain: NewDomain, db_pool: &MySqlPool) -
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn get_domain(id: Uuid, db_pool: &MySqlPool) -> Result<Option<Domain>> {
+pub async fn get_domain(id: Uuid, db_pool: &DBPool) -> Result<Option<Domain>> {
     let domain = sqlx::query_as!(
         Domain,
-        "SELECT id AS `id: Uuid`, display_name, description_text, icon_url, banner_url, public AS `public: bool`, created_at FROM domains WHERE id = ?",
+        "SELECT * WHERE id = $1",
         id
     )
     .fetch_optional(db_pool)
@@ -46,19 +46,15 @@ pub async fn get_domain(id: Uuid, db_pool: &MySqlPool) -> Result<Option<Domain>>
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn get_user_domains(user_id: Uuid, db_pool: &MySqlPool) -> Result<Vec<Domain>> {
+pub async fn get_user_domains(user_id: Uuid, db_pool: &DBPool) -> Result<Vec<Domain>> {
     let user_memberships = get_user_memberships(user_id, db_pool).await?;
 
-    // Construct a vec of each domain_id as strings padded with single quotes
-    let domain_ids: Vec<String> = user_memberships.iter().map(|membership| format!("'{}'", membership.domain_id)).collect();
-
-    let asd = domain_ids.join(",");
-    tracing::debug!("asdasd {asd}");
+    let domain_ids: Vec<String> = user_memberships.iter().map(|membership| membership.domain_id).collect();
 
     let domains = sqlx::query_as!(
         Domain,
-        "SELECT id AS `id: Uuid`, display_name, description_text, icon_url, banner_url, public AS `public: bool`, created_at FROM domains WHERE id IN (?)",
-        domain_ids.join(",")
+        "SELECT * FROM domains WHERE id IN ($1)",
+        domain_ids
     )
     .fetch_all(db_pool)
     .await?;
@@ -67,10 +63,10 @@ pub async fn get_user_domains(user_id: Uuid, db_pool: &MySqlPool) -> Result<Vec<
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn add_domain_membership(membership: DomainMembership, db_pool: &MySqlPool) -> Result<()> {
+pub async fn add_domain_membership(membership: DomainMembership, db_pool: &DBPool) -> Result<()> {
     sqlx::query_as!(
         DomainMembership,
-        "INSERT INTO domain_memberships (domain_id, user_id, role_name) VALUES (?, ?, ?)",
+        "INSERT INTO domain_memberships (domain_id, user_id, role_name) VALUES ($1, $2, $3)",
         membership.domain_id, 
         membership.user_id,
         membership.role_name
@@ -82,10 +78,10 @@ pub async fn add_domain_membership(membership: DomainMembership, db_pool: &MySql
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn get_domain_memberships(domain_id: Uuid, db_pool: &MySqlPool) -> Result<Vec<DomainMembership>> {
+pub async fn get_domain_memberships(domain_id: Uuid, db_pool: &DBPool) -> Result<Vec<DomainMembership>> {
     let domain_memberships = sqlx::query_as!(
         DomainMembership,
-        "SELECT domain_id AS `domain_id: Uuid`, user_id AS `user_id: Uuid`, role_name FROM domain_memberships where domain_id = ?",
+        "SELECT * FROM domain_memberships where domain_id = $1",
         domain_id
     )
     .fetch_all(db_pool)
@@ -95,10 +91,10 @@ pub async fn get_domain_memberships(domain_id: Uuid, db_pool: &MySqlPool) -> Res
 }
 
 #[tracing::instrument(skip(db_pool))]
-pub async fn get_user_memberships(user_id: Uuid, db_pool: &MySqlPool) -> Result<Vec<DomainMembership>> {
+pub async fn get_user_memberships(user_id: Uuid, db_pool: &DBPool) -> Result<Vec<DomainMembership>> {
     let user_memberships = sqlx::query_as!(
         DomainMembership,
-        "SELECT domain_id AS `domain_id: Uuid`, user_id AS `user_id: Uuid`, role_name FROM domain_memberships where user_id = ?",
+        "SELECT * FROM domain_memberships where user_id = $1",
         user_id
     )
     .fetch_all(db_pool)
