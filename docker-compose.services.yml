@@ -1,4 +1,6 @@
 version: "3.9"
+include:
+  - docker-compose.ory.yml
 services:
   redis:
     image: redis:7.2.1
@@ -13,7 +15,3 @@ services:
     environment:
       - COCKROACH_USER=root
       - COCKROACH_DATABASE=core
-  ory-kratos:
-    image: oryd/kratos:v1.0.0
-    ports:
-      - "6379:6379"
