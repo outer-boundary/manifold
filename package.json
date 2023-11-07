@@ -26,7 +26,7 @@
     "migrations:revert": "run-s services:start \"_migrations revert\"",
     "build:backend": "pnpm in:backend cross-env MANIFOLD__ENVIRONMENT=production cargo build --release",
     "build:client": "pnpm in:client pnpm run build",
-    "postinstall": "run-p install:*",
+    "postinstall": "run-s install:*",
     "install:backend": "pnpm in:backend cargo install sqlx-cli cargo-watch",
     "install:client": "pnpm in:client pnpm install"
   },
