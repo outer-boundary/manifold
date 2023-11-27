@@ -36,7 +36,7 @@ pub async fn add_domain(user_id: Uuid, domain: NewDomain, db_pool: &DBPool) -> R
 pub async fn get_domain(id: Uuid, db_pool: &DBPool) -> Result<Option<Domain>> {
     let domain = sqlx::query_as!(
         Domain,
-        "SELECT * WHERE id = $1",
+        "SELECT * FROM domains WHERE id = $1",
         id
     )
     .fetch_optional(db_pool)
@@ -49,7 +49,7 @@ pub async fn get_domain(id: Uuid, db_pool: &DBPool) -> Result<Option<Domain>> {
 pub async fn get_user_domains(user_id: Uuid, db_pool: &DBPool) -> Result<Vec<Domain>> {
     let user_memberships = get_user_memberships(user_id, db_pool).await?;
 
-    let domain_ids: Vec<String> = user_memberships.iter().map(|membership| membership.domain_id).collect();
+    let domain_ids: Vec<Uuid> = user_memberships.iter().map(|membership| membership.domain_id).collect();
 
     let domains = sqlx::query_as!(
         Domain,

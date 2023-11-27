@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use actix_web::{post, web, HttpResponse};
-use sqlx::MySqlPool;
 
 pub fn auth_scope(cfg: &mut web::ServiceConfig) {
     cfg.service(verify_route)
