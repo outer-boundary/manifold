@@ -53,8 +53,8 @@ pub async fn get_user_domains(user_id: Uuid, db_pool: &DBPool) -> Result<Vec<Dom
 
     let domains = sqlx::query_as!(
         Domain,
-        "SELECT * FROM domains WHERE id IN ($1)",
-        domain_ids
+        "SELECT * FROM domains WHERE id = ANY($1)",
+        &domain_ids
     )
     .fetch_all(db_pool)
     .await?;

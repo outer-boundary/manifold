@@ -7,7 +7,8 @@ export interface Domain {
   iconUrl: string,
   bannerUrl: string,
   public: boolean,
-  createdAt: Date
+  createdAt: Date,
+  updatedAt: Date
 }
 
 const domainsStore = writable<Domain[] | undefined>(undefined);

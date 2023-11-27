@@ -111,7 +111,6 @@
 	onMount(async () => {
 		if ($domainsStore === undefined) {
 			const userDomains = await getDomains();
-			console.log(userDomains);
 			domainsStore.set(userDomains);
 		}
 	});
@@ -122,6 +121,15 @@
 		<p class="title">Favourites</p>
 		<div class="favouriteDomains" on:scroll={(e) => manageFavouriteDomainsFade(e)}>
 			<div class="favouriteDomainsLeftFade fade" />
+			<!-- TODO: show favourite domains -->
+			<div class="favouriteDomainsRightFade fade" />
+		</div>
+	</div>
+
+	<div class="allDomainsContainer domainsContainer">
+		<p class="title">All</p>
+		<div class="allDomains" on:scroll={(e) => manageAllDomainsFade(e)}>
+			<div class="allDomainsTopFade fade" />
 			{#if $domainsStore}
 				{#each $domainsStore as domain}
 					<DomainCard
@@ -132,22 +140,6 @@
 					/>
 				{/each}
 			{/if}
-			<div class="favouriteDomainsRightFade fade" />
-		</div>
-	</div>
-
-	<div class="allDomainsContainer domainsContainer">
-		<p class="title">All</p>
-		<div class="allDomains" on:scroll={(e) => manageAllDomainsFade(e)}>
-			<div class="allDomainsTopFade fade" />
-			{#each [...new Array(12)] as card}
-				<DomainCard
-					cardType="all"
-					name="My Cool Domain"
-					memberCount={Math.ceil(Math.random() * 50)}
-					wallpaperUrl={wallpapers[Math.floor(Math.random() * wallpapers.length)]}
-				/>
-			{/each}
 			<div class="allDomainsBottomFade fade" />
 		</div>
 	</div>
