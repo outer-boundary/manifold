@@ -133,7 +133,7 @@
 			{#if $domainsStore}
 				{#each $domainsStore as domain}
 					<DomainCard
-						cardType="favourite"
+						cardType="all"
 						name={domain.displayName}
 						memberCount={Math.ceil(Math.random() * 50)}
 						wallpaperUrl={wallpapers[Math.floor(Math.random() * wallpapers.length)]}
