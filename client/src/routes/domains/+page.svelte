@@ -133,6 +133,7 @@
 			{#if $domainsStore}
 				{#each $domainsStore as domain}
 					<DomainCard
+						id={domain.id}
 						cardType="all"
 						name={domain.displayName}
 						memberCount={Math.ceil(Math.random() * 50)}

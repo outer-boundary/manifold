@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
 	import Icon from "@iconify/svelte";
 
+	export let id: string;
 	export let wallpaperUrl: string | null = null;
 	export let name: string;
 	export let memberCount: number;
@@ -8,7 +10,7 @@
 </script>
 
 <!-- When the user hovers over the card, do the transform skew thing based on their mouse pos -->
-<div class="card">
+<button class="card" on:click={() => goto(`${window.location}/${id}`)}>
 	{#if cardType === "favourite"}
 		<Icon class="favouriteIcon" icon="material-symbols:star-rounded" />
 	{/if}
@@ -17,7 +19,7 @@
 		<p class="name">{name}</p>
 		<p class="memberCount">{memberCount}</p>
 	</div>
-</div>
+</button>
 
 <style lang="scss">
 	@import "../../styles/globalStyles.scss";
@@ -30,6 +32,7 @@
 		border: $mainBorderWidth solid $secondaryElementColour;
 		color: $mainTextColour;
 		position: relative;
+		cursor: pointer;
 	}
 
 	:global(.favouriteIcon) {
@@ -57,5 +60,6 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: 12px 14px;
+		background-color: $mainElementColour;
 	}
 </style>
