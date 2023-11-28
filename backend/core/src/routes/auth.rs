@@ -57,7 +57,7 @@ async fn login_route(
     match login_result {
         Ok((Some(user_id), true)) => {
             tracing::info!("Successfully logged in user with id '{}'.", user_id);
-            HttpResponse::NoContent().finish()
+            HttpResponse::Ok().json(user_id)
         }
         Ok((user_id, false)) => {
             if let Some(user_id) = user_id {

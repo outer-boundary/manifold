@@ -33,6 +33,9 @@
 	<label for="password">Password</label>
 	<input name="password" type="password" />
 	<button type="submit">Signup</button>
+	<button class="hasAccount" on:click={() => goto("/login")}
+		>Already have an account? <span class="login">Login</span></button
+	>
 </form>
 
 <style lang="scss">
@@ -50,6 +53,19 @@
 
 		button {
 			padding: 4px;
+		}
+
+		.hasAccount {
+			margin-top: 6px;
+			margin-left: auto;
+			background: none;
+			color: rgb(85, 85, 85);
+
+			.login {
+				color: $mainAccentColour;
+				font-weight: 600;
+				cursor: pointer;
+			}
 		}
 	}
 </style>

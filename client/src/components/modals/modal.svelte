@@ -4,7 +4,7 @@
 	import { fade } from "svelte/transition";
 	import { cubicOut } from "svelte/easing";
 	import { fadeScale } from "../../utils/transitions";
-	import { modalState, modalTransitionTime } from "../../stores/modalState";
+	import modalStore, { modalTransitionTime } from "../../stores/modalState";
 
 	// The width needs to be explicitly defined because of how the 'pagination' works
 	export let width: number;
@@ -55,12 +55,7 @@
 	style="width:{width}px;{style}"
 	bind:this={modal}
 >
-	<button
-		class="close-icon"
-		on:click={() => {
-			modalState.set({ component: null });
-		}}
-	>
+	<button class="close-icon" on:click={modalStore.close}>
 		<Icon icon="material-symbols:close-rounded" />
 	</button>
 	{#if pages && pages.length > 0}

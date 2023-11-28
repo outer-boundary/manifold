@@ -2,6 +2,9 @@
 	import Icon from "@iconify/svelte";
 	import ModalPage from "../../../components/modals/modal-page.svelte";
 	import Modal from "../../../components/modals/modal.svelte";
+	import fetch from "../../../utils/fetch";
+	import modalStore from "../../../stores/modalState";
+	import domainsStore, { type Domain } from "../../../stores/domainsStore";
 
 	const pageStyle = "display: flex; flex-direction: column;";
 
@@ -14,6 +17,31 @@
 			iconUrl = fileReader.result?.toString();
 			console.log(iconUrl);
 		});
+	}
+
+	async function createDomain() {
+		const displayName = (document.getElementById("nameInput") as HTMLInputElement).value;
+		const descriptionText = (document.getElementById("descriptionTextArea") as HTMLInputElement)
+			.value;
+		try {
+			const res = await fetch("http://localhost:8080/api/domains", {
+				method: "POST",
+				body: {
+					displayName: displayName,
+					descriptionText: descriptionText,
+					iconUrl: "",
+					bannerUrl: "",
+					public: false
+				}
+			});
+			if (res.status === 200) {
+				const newDomain = await res.json();
+				domainsStore.update((domains) => [...domains!, newDomain]);
+				modalStore.close();
+			}
+		} catch (err) {
+			console.log("Error:", (err as Error).message);
+		}
 	}
 </script>
 
@@ -58,7 +86,7 @@
 				<textarea name="" id="descriptionTextArea" cols="20" rows="3" />
 			</div>
 		</div>
-		<button class="create-domain-button">
+		<button class="create-domain-button" on:click={() => createDomain()}>
 			<p>Create Domain</p>
 		</button>
 	</ModalPage>

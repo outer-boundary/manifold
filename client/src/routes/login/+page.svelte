@@ -1,19 +1,20 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import { onMount } from "svelte";
 	import fetch from "../../utils/fetch";
 
 	async function onLogin(e: SubmitEvent) {
 		const formData = new FormData(e.target as HTMLFormElement);
 		try {
-			const res = await fetch("http://localhost:8080/api/auth/login", {
+			// Attempt to log the user in
+			const loginRes = await fetch("http://localhost:8080/api/auth/login", {
 				method: "POST",
 				body: {
 					email: formData.get("identity"),
 					password: formData.get("password")
 				}
 			});
-			if (res.status === 204) {
+			if (loginRes.status === 200) {
+				localStorage.setItem("userID", await loginRes.json());
 				goto("/");
 			}
 		} catch (err) {
@@ -28,6 +29,9 @@
 	<label for="password">Password</label>
 	<input name="password" type="password" />
 	<button type="submit">Login</button>
+	<button class="noAccount" on:click={() => goto("/signup")}
+		>Don't have an account? <span class="signup">Signup</span></button
+	>
 </form>
 
 <style lang="scss">
@@ -45,6 +49,19 @@
 
 		button {
 			padding: 4px;
+		}
+
+		.noAccount {
+			margin-top: 6px;
+			margin-left: auto;
+			background: none;
+			color: rgb(85, 85, 85);
+
+			.signup {
+				color: $mainAccentColour;
+				font-weight: 600;
+				cursor: pointer;
+			}
 		}
 	}
 </style>

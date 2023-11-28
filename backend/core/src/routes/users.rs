@@ -9,7 +9,7 @@ use crate::{
         configuration::{get_config, Environment},
         email::send_multipart_email,
         url::full_uri,
-        users::{add_user, delete_user, get_user, get_users},
+        users::{add_user, delete_user, get_user, get_users}, domains::get_user_domains,
     },
 };
 use actix_web::{delete, get, http::header, post, web, HttpRequest, HttpResponse};
@@ -20,7 +20,8 @@ pub fn users_scope(cfg: &mut web::ServiceConfig) {
     cfg.service(get_users_route)
         .service(get_user_route)
         .service(add_user_route)
-        .service(delete_user_route);
+        .service(delete_user_route)
+        .service(get_user_domains_route);
 }
 
 #[tracing::instrument(skip(db_pool, current_user), fields(current_user_id = %current_user.0.id))]
@@ -168,20 +169,20 @@ async fn add_user_route(
                     }
                     Err(err) => {
                         tracing::error!(
-                                    "Error occurred while trying to send verification email to user with id '{}'. {}",
-                                    user.id,
-                                    err
-                                );
+                            "Error occurred while trying to send verification email to user with id '{}'. {}",
+                            user.id,
+                            err
+                        );
                         HttpResponse::InternalServerError().json(
-                                    ErrorResponse::new(
-                                        0,
-                                        format!(
-                                            "Error occurred while trying to send verification email to user with id '{}'",
-                                            user.id
-                                        ),
-                                    )
-                                    .description(err),
-                                )
+                            ErrorResponse::new(
+                                0,
+                                format!(
+                                    "Error occurred while trying to send verification email to user with id '{}'",
+                                    user.id
+                                ),
+                            )
+                            .description(err),
+                        )
                     }
                 }
             }
@@ -268,4 +269,28 @@ async fn delete_user_route(
             )
         }
     }
+}
+
+#[tracing::instrument(skip(db_pool))]
+#[get("/{user_id}/domains")]
+async fn get_user_domains_route(db_pool: web::Data<DBPool>, user_id: web::Path<Uuid>) -> HttpResponse {
+  tracing::debug!("Getting all domains for user with id {}...", user_id);
+
+  let user_id = user_id.into_inner();
+  let domains = get_user_domains(user_id, &db_pool).await;
+
+  match domains {
+    Ok(domains) => {
+      tracing::info!("Returning domains.");
+        HttpResponse::Ok().json(domains)
+    }
+    Err(err) => {
+      let err_string = format!("Failed to get domains that user with id '{}' is a member of. {}", user_id, err);
+      tracing::error!(err_string);
+      HttpResponse::InternalServerError().json(
+      ErrorResponse::new(0,err_string)
+          .description(err),
+      )
+    }
+  }
 }
