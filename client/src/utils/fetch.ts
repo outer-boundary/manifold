@@ -5,7 +5,7 @@ export default async function fetch(url: RequestInfo | URL, config?: RequestConf
     headers: {
       "Content-Type": 'application/json'
     },
-    credentials: 'include',
+    // credentials: 'include',
     ...config,
     body: config?.body ? JSON.stringify(config.body) : undefined,
   });

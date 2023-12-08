@@ -12,7 +12,7 @@ Create a `.env` file in the root of the project and populate it using the templa
 
 ```
 COCKROACH_PASSWORD=...
-MANIFOLD__DATABASE__URL="postgresql://root:${COCKROACH_PASSWORD}@127.0.0.1:26257/core?sslmode=disable"
+MANIFOLD__DATABASE__URL="postgresql://root:${COCKROACH_PASSWORD}@localhost:26257/core?sslmode=disable"
 # This is required for the compile-time checking done by sqlx
 DATABASE_URL=${MANIFOLD__DATABASE__URL}
 
