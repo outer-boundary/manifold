@@ -1,5 +1,5 @@
 <script lang="ts">
-	import modalStore from "../stores/modalState";
+	import modalStore from "../stores/modalStore";
 
 	function deactiveOverlay() {
 		(document.getElementById("overlay") as HTMLElement)?.classList.remove("active");

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from "@iconify/svelte";
 	import { goto } from "$app/navigation";
-	import { sidebarActions } from "../stores/sidebarActions";
+	import sidebarActionsStore from "../stores/sidebarActionsStore";
 	import type { TabType, TabInfo } from "../types/tabInfo";
 	import Tab from "../components/tab.svelte";
 	import fetch from "../utils/fetch";
@@ -84,7 +84,7 @@
 		</div>
 		<div class="tabsDivider" />
 		<div class="actions">
-			{#each $sidebarActions as action}
+			{#each $sidebarActionsStore as action}
 				<button class="action" on:click={action.onClick}>
 					<Icon class="actionIcon" icon={action.iconName} />
 					<p class="tabText">{action.text}</p>

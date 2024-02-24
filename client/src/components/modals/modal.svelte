@@ -4,7 +4,7 @@
 	import { fade } from "svelte/transition";
 	import { cubicOut } from "svelte/easing";
 	import { fadeScale } from "../../utils/transitions";
-	import modalStore, { modalTransitionTime } from "../../stores/modalState";
+	import modalStore, { modalTransitionTime } from "../../stores/modalStore";
 
 	// The width needs to be explicitly defined because of how the 'pagination' works
 	export let width: number;

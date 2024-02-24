@@ -3,7 +3,7 @@
 	import ModalPage from "../../../components/modals/modal-page.svelte";
 	import Modal from "../../../components/modals/modal.svelte";
 	import fetch from "../../../utils/fetch";
-	import modalStore from "../../../stores/modalState";
+	import modalStore from "../../../stores/modalStore";
 	import domainsStore, { type Domain } from "../../../stores/domainsStore";
 
 	const pageStyle = "display: flex; flex-direction: column;";

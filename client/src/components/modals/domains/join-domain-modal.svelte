@@ -1,5 +1,5 @@
 <script>
-	import Modal from "../../../components/modals/modal.svelte";
+	import Modal from "../modal.svelte";
 </script>
 
 <Modal width={200}>

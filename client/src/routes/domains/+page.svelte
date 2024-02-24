@@ -1,10 +1,6 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import modalStore from "../../stores/modalState";
-	import { sidebarActions } from "../../stores/sidebarActions";
+	import { onDestroy, onMount } from "svelte";
 	import DomainCard from "./domain-card.svelte";
-	import CreateDomainModal from "./modals/create-domain-modal.svelte";
-	import JoinDomainModal from "./modals/join-domain-modal.svelte";
 	import type { Domain } from "../../stores/domainsStore";
 	import domainsStore from "../../stores/domainsStore";
 
@@ -80,23 +76,6 @@
 		}
 	}
 
-	sidebarActions.set([
-		{
-			iconName: "material-symbols:search-rounded",
-			text: "Join Domain",
-			onClick: () => {
-				modalStore.open(JoinDomainModal);
-			}
-		},
-		{
-			iconName: "material-symbols:add-rounded",
-			text: "Create Domain",
-			onClick: () => {
-				modalStore.open(CreateDomainModal);
-			}
-		}
-	]);
-
 	async function getDomains(): Promise<Domain[]> {
 		try {
 			const userID = localStorage.getItem("userID");
@@ -113,6 +92,10 @@
 			const userDomains = await getDomains();
 			domainsStore.set(userDomains);
 		}
+	});
+
+	onDestroy(() => {
+		// sidebarActions.set([]);
 	});
 </script>
 
