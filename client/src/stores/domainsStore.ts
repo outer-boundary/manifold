@@ -11,6 +11,6 @@ export interface Domain {
   updatedAt: Date
 }
 
-const domainsStore = writable<Domain[] | undefined>(undefined);
+const domainsStore = writable<Domain[] | null>(null);
 
 export default domainsStore;

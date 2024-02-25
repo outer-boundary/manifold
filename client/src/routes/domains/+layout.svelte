@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import sidebarActionsStore from "../../stores/sidebarActionsStore";
 	import modalStore from "../../stores/modalStore";
 	import JoinDomainModal from "../../components/modals/domains/join-domain-modal.svelte";

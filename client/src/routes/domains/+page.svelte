@@ -88,14 +88,10 @@
 	}
 
 	onMount(async () => {
-		if ($domainsStore === undefined) {
+		if (!$domainsStore) {
 			const userDomains = await getDomains();
 			domainsStore.set(userDomains);
 		}
-	});
-
-	onDestroy(() => {
-		// sidebarActions.set([]);
 	});
 </script>
 

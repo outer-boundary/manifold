@@ -49,8 +49,8 @@
 <div
 	id="modal"
 	transition:fadeScale={{ duration: modalTransitionTime }}
-	on:click|stopPropagation={() => {}}
-	on:keyup|stopPropagation={() => {}}
+	on:click|stopPropagation
+	on:keyup|stopPropagation
 	role="none"
 	style="width:{width}px;{style}"
 	bind:this={modal}

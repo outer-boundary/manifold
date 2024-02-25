@@ -6,7 +6,11 @@
 		{
 			iconName: "material-symbols:chat-rounded",
 			text: "Chat",
-			onClick: () => goto(`${window.location.pathname}/chat`)
+			onClick: () => {
+				if (window.location.pathname.split("/").at(-1) !== "chat") {
+					goto(`${window.location.pathname}/chat`);
+				}
+			}
 		}
 	]);
 </script>
