@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from "@iconify/svelte";
 	import contextMenuStore from "../../../../stores/contextMenuStore";
 	import type { ElementEvent } from "../../../../utils/types";
 
@@ -19,6 +20,17 @@
 	let selectedChatID = "";
 	$: selectedChatMessages =
 		chatGroups.flatMap((x) => x.chats).find((x) => x.id === selectedChatID)?.messages ?? [];
+
+	function sortChatGroups(chatGroups: ChatGroup[]) {
+		const index = chatGroups.findIndex((x) => x.name === null);
+
+		if (index >= 0) {
+			const [item] = chatGroups.splice(index, 1);
+			chatGroups.unshift(item);
+		}
+
+		return chatGroups;
+	}
 
 	function handleChatContainerContextMenu(e: ElementEvent<HTMLDivElement>) {
 		e.preventDefault();
@@ -119,7 +131,6 @@
 										: chat
 								)
 							}));
-							console.log(selectedChatMessages);
 							e.currentTarget.value = "";
 						}
 					}
@@ -132,19 +143,26 @@
 		role="none"
 		on:contextmenu={handleChatContainerContextMenu}
 	>
-		{#each chatGroups as chatGroup}
+		{#each sortChatGroups(chatGroups) as chatGroup}
 			<button
 				class="chat-group"
+				class:padding={chatGroup.name !== null}
 				on:click={() => toggleChatsVisibility(chatGroup.id)}
 				on:contextmenu|stopPropagation|preventDefault={(e) =>
 					handleChatGroupContextMenu(e, chatGroup.id)}
 			>
 				{#if chatGroup.name !== null}
-					<p>{chatGroup.name}</p>
+					<div class="name-container">
+						<p>{chatGroup.name}</p>
+						<div class="drop-down-icon-container" class:closed={chatGroup.hiddenChats}>
+							<Icon class="drop-down-icon" icon="material-symbols:arrow-drop-down-rounded" />
+						</div>
+					</div>
 				{/if}
 				<div
 					class="chats-container"
 					class:hidden={chatGroup.hiddenChats}
+					class:margin={chatGroup.name !== null}
 					role="none"
 					on:click|stopPropagation
 				>
@@ -227,24 +245,56 @@
 		border-left: $mainBorderWidth solid $secondaryElementColour;
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: 4px;
 	}
 
 	.chat-group {
 		text-align: left;
+
+		&.padding {
+			padding: 4px;
+		}
+
+		& :global(.drop-down-icon) {
+			width: 20px;
+			height: 20px;
+			color: white;
+		}
+	}
+
+	.drop-down-icon-container {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&.closed {
+			rotate: 90deg;
+		}
+	}
+
+	.name-container {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 	}
 
 	.chats-container {
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: 2px;
 
 		&.hidden {
 			display: none;
 		}
+
+		&.margin {
+			margin-left: 4px;
+			margin-top: 2px;
+		}
 	}
 
 	.chat {
+		padding: 4px;
 		text-align: left;
 
 		&.selected {
