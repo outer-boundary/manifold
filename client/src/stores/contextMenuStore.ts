@@ -5,10 +5,6 @@ interface ContextMenuBase {
   position: { x: number; y: number };
 }
 
-interface ContextMenuItems extends ContextMenuBase {
-  items: ContextMenuItem[];
-}
-
 interface ContextMenuItem {
   iconName?: string;
   text: string;
@@ -16,8 +12,12 @@ interface ContextMenuItem {
   childActions?: ContextMenuItem[];
 }
 
+interface ContextMenuItems extends ContextMenuBase {
+  items: ContextMenuItem[];
+}
+
 interface ContextMenuComponent extends ContextMenuBase {
-  component: ComponentType
+  component: ComponentType;
 }
 
 const contextMenuStore = writable<ContextMenuItems | ContextMenuComponent | null>(null);

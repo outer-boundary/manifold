@@ -1,20 +1,26 @@
 <script lang="ts">
 	import contextMenuStore from "../../../../stores/contextMenuStore";
+	import type { ElementEvent } from "../../../../utils/types";
 
-	let messages: string[] = [];
-	let chatGroups: {
+	interface Chat {
+		id: string;
+		name: string;
+		messages: string[];
+	}
+
+	interface ChatGroup {
+		id: string;
 		name: string | null;
-		chats: {
-			name: string;
-			messages: string[];
-		}[];
-	}[] = [];
+		hiddenChats: boolean;
+		chats: Chat[];
+	}
 
-	function handleContextMenu(
-		e: MouseEvent & {
-			currentTarget: EventTarget & HTMLDivElement;
-		}
-	) {
+	let chatGroups: ChatGroup[] = [];
+	let selectedChatID = "";
+	$: selectedChatMessages =
+		chatGroups.flatMap((x) => x.chats).find((x) => x.id === selectedChatID)?.messages ?? [];
+
+	function handleChatContainerContextMenu(e: ElementEvent<HTMLDivElement>) {
 		e.preventDefault();
 		contextMenuStore.set({
 			position: { x: e.x, y: e.y },
@@ -22,35 +28,63 @@
 				{
 					text: "Create Chat Group",
 					onClick: () => {
-						chatGroups = [...chatGroups, { name: "New Chat Group", chats: [] }];
+						chatGroups = [
+							...chatGroups,
+							{ id: Date.now().toString(), name: "New Chat Group", hiddenChats: false, chats: [] }
+						];
 					}
 				},
 				{
 					text: "Create Chat",
 					onClick: () => {
-						const newChat = { name: "New Chat", messages: [] };
+						const chatID = Date.now().toString();
+						const newChat = { id: chatID, name: "New Chat", messages: [] };
 						const existingNonGroupedChats = chatGroups.find((x) => x.name === null);
 						if (existingNonGroupedChats) {
 							existingNonGroupedChats.chats = [...existingNonGroupedChats.chats, newChat];
 							chatGroups = [...chatGroups];
 						} else {
-							chatGroups = [...chatGroups, { name: null, chats: [newChat] }];
+							chatGroups = [
+								...chatGroups,
+								{ id: Date.now().toString(), name: null, hiddenChats: false, chats: [newChat] }
+							];
 						}
+						selectedChatID = chatID;
 					}
 				}
 			]
 		});
 	}
 
-	function toggleChatsVisibility(
-		e: MouseEvent & {
-			currentTarget: EventTarget & HTMLButtonElement;
+	function handleChatGroupContextMenu(e: ElementEvent<HTMLButtonElement>, id: string) {
+		contextMenuStore.set({
+			position: { x: e.x, y: e.y },
+			items: [
+				{
+					text: "Create New Chat",
+					onClick: () => {
+						const chatGroup = chatGroups.find((x) => x.id === id)!;
+						const chatID = Date.now().toString();
+						chatGroup.chats.push({ id: chatID, name: "New Chat", messages: [] });
+						chatGroups = [...chatGroups];
+						selectedChatID = chatID;
+					}
+				}
+			]
+		});
+	}
+
+	function toggleChatsVisibility(id: string) {
+		const chatGroup = chatGroups.find((x) => x.id === id)!;
+		// Only toggle if there are any chats in the group
+		if (chatGroup.chats.length > 0) {
+			chatGroup.hiddenChats = !chatGroup.hiddenChats;
+			chatGroups = [...chatGroups];
 		}
-	) {
-		const chatsContainer = e.currentTarget.children[
-			e.currentTarget.children.length - 1
-		] as HTMLElement;
-		chatsContainer.classList.toggle("hidden");
+	}
+
+	function getSelectedChat() {
+		return chatGroups.flatMap((x) => x.chats).find((x) => x.id === selectedChatID);
 	}
 </script>
 
@@ -58,7 +92,7 @@
 	<div class="left-container">
 		<div class="section chat-container-outer">
 			<div class="chat-container-inner">
-				{#each messages as message}
+				{#each selectedChatMessages as message}
 					<div class="message-box">
 						<p>{message}</p>
 					</div>
@@ -71,22 +105,55 @@
 				on:keyup={(e) => {
 					// currently it'll always have the new line character so we need to check for that
 					if (e.key === "Enter" && e.currentTarget.value.length > 1) {
-						messages = [...messages, e.currentTarget.value.trim()];
-						e.currentTarget.value = "";
+						const selectedChat = getSelectedChat();
+						if (selectedChat) {
+							selectedChat.messages.push(e.currentTarget.value.trim());
+							chatGroups = chatGroups.map((group) => ({
+								...group,
+								chats: group.chats.map((chat) =>
+									chat.id === selectedChatID
+										? {
+												...chat,
+												messages: [...chat.messages]
+										  }
+										: chat
+								)
+							}));
+							console.log(selectedChatMessages);
+							e.currentTarget.value = "";
+						}
 					}
 				}}
 			/>
 		</div>
 	</div>
-	<div class="section chat-groups-container" role="none" on:contextmenu={handleContextMenu}>
+	<div
+		class="section chat-groups-container"
+		role="none"
+		on:contextmenu={handleChatContainerContextMenu}
+	>
 		{#each chatGroups as chatGroup}
-			<button class="chat-group" on:click={(e) => {}}>
+			<button
+				class="chat-group"
+				on:click={() => toggleChatsVisibility(chatGroup.id)}
+				on:contextmenu|stopPropagation|preventDefault={(e) =>
+					handleChatGroupContextMenu(e, chatGroup.id)}
+			>
 				{#if chatGroup.name !== null}
 					<p>{chatGroup.name}</p>
 				{/if}
-				<div class="chats-container">
+				<div
+					class="chats-container"
+					class:hidden={chatGroup.hiddenChats}
+					role="none"
+					on:click|stopPropagation
+				>
 					{#each chatGroup.chats as chat}
-						<button class="chat">
+						<button
+							class="chat"
+							class:selected={selectedChatID === chat.id}
+							on:click={() => (selectedChatID = chat.id)}
+						>
 							<p>{chat.name}</p>
 						</button>
 					{/each}
@@ -172,12 +239,16 @@
 		flex-direction: column;
 		gap: 4px;
 
-		&:hidden {
+		&.hidden {
 			display: none;
 		}
 	}
 
 	.chat {
 		text-align: left;
+
+		&.selected {
+			background-color: $mainAccentColour;
+		}
 	}
 </style>
