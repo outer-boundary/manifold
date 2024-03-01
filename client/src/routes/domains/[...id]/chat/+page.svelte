@@ -21,6 +21,39 @@
 	$: selectedChatMessages =
 		chatGroups.flatMap((x) => x.chats).find((x) => x.id === selectedChatID)?.messages ?? [];
 
+	let chatGroupCount = 0;
+	let chatCount = 0;
+
+	let dragInfo: {
+		draggedItemInfo: { chatGroupIndex: number; chatIndex: number };
+		newPosition: { chatGroupIndex: number; chatIndex: number };
+	} = {
+		draggedItemInfo: { chatGroupIndex: -1, chatIndex: -1 },
+		newPosition: { chatGroupIndex: -1, chatIndex: -1 }
+	};
+
+	function sendMessage(e: ElementEvent<KeyboardEvent, HTMLTextAreaElement>) {
+		// currently it'll always have the new line character so we need to check for that
+		if (e.key === "Enter" && e.currentTarget.value.length > 1) {
+			const selectedChat = getSelectedChat();
+			if (selectedChat) {
+				selectedChat.messages.push(e.currentTarget.value.trim());
+				chatGroups = chatGroups.map((group) => ({
+					...group,
+					chats: group.chats.map((chat) =>
+						chat.id === selectedChatID
+							? {
+									...chat,
+									messages: [...chat.messages]
+							  }
+							: chat
+					)
+				}));
+				e.currentTarget.value = "";
+			}
+		}
+	}
+
 	function sortChatGroups(chatGroups: ChatGroup[]) {
 		const index = chatGroups.findIndex((x) => x.name === null);
 
@@ -32,7 +65,7 @@
 		return chatGroups;
 	}
 
-	function handleChatContainerContextMenu(e: ElementEvent<HTMLDivElement>) {
+	function handleChatContainerContextMenu(e: ElementEvent<MouseEvent, HTMLDivElement>) {
 		e.preventDefault();
 		contextMenuStore.set({
 			position: { x: e.x, y: e.y },
@@ -42,7 +75,12 @@
 					onClick: () => {
 						chatGroups = [
 							...chatGroups,
-							{ id: Date.now().toString(), name: "New Chat Group", hiddenChats: false, chats: [] }
+							{
+								id: Date.now().toString(),
+								name: "New Chat Group " + ++chatGroupCount,
+								hiddenChats: false,
+								chats: []
+							}
 						];
 					}
 				},
@@ -50,7 +88,7 @@
 					text: "Create Chat",
 					onClick: () => {
 						const chatID = Date.now().toString();
-						const newChat = { id: chatID, name: "New Chat", messages: [] };
+						const newChat = { id: chatID, name: "New Chat " + ++chatCount, messages: [] };
 						const existingNonGroupedChats = chatGroups.find((x) => x.name === null);
 						if (existingNonGroupedChats) {
 							existingNonGroupedChats.chats = [...existingNonGroupedChats.chats, newChat];
@@ -68,7 +106,7 @@
 		});
 	}
 
-	function handleChatGroupContextMenu(e: ElementEvent<HTMLButtonElement>, id: string) {
+	function handleChatGroupContextMenu(e: ElementEvent<MouseEvent, HTMLDivElement>, id: string) {
 		contextMenuStore.set({
 			position: { x: e.x, y: e.y },
 			items: [
@@ -77,7 +115,7 @@
 					onClick: () => {
 						const chatGroup = chatGroups.find((x) => x.id === id)!;
 						const chatID = Date.now().toString();
-						chatGroup.chats.push({ id: chatID, name: "New Chat", messages: [] });
+						chatGroup.chats.push({ id: chatID, name: "New Chat " + ++chatCount, messages: [] });
 						chatGroups = [...chatGroups];
 						selectedChatID = chatID;
 					}
@@ -98,6 +136,77 @@
 	function getSelectedChat() {
 		return chatGroups.flatMap((x) => x.chats).find((x) => x.id === selectedChatID);
 	}
+
+	function onDragStart(chatGroupIndex: number, chatIndex: number) {
+		dragInfo.draggedItemInfo = { chatGroupIndex, chatIndex };
+	}
+
+	function onDragOver(
+		e: ElementEvent<DragEvent, HTMLElement>,
+		isOverChatGroup: boolean,
+		chatGroupIndex: number,
+		chatIndex: number
+	) {
+		const targetRect = e.currentTarget.getBoundingClientRect();
+		// If the user is mousing nearing the bottom half of the element
+		let pos: "top" | "bottom" = "top";
+		if (e.pageY >= targetRect.top + targetRect.height / 2) {
+			pos = "bottom";
+		}
+
+		// add half the container's gap value so that the indicator is in the same spot regardless of if it's from the bottom or top of an element
+		// TODO need to change this to be relative to the component as it won't adjust its position/size if the window size changes
+		const offset = 1 * (pos === "top" ? -1 : 1);
+		const style = `left: ${targetRect.left}px; top: ${
+			(pos === "top" ? targetRect.top : targetRect.bottom) + offset
+		}px; width: ${targetRect.width}px`;
+		document.getElementById("drag-indicator")!.style.cssText = style;
+
+		const chatIndexDiff = chatIndex - dragInfo.draggedItemInfo.chatIndex;
+		// If the user is hovering of elements that would be the dragged element in the same positon then leave it there
+		// Otherwise, if the user is dragging on the bottom portion of an element then place it afterwards
+		if (!isOverChatGroup) {
+			const newChatIndex =
+				((chatIndexDiff === -1 && pos === "bottom") || (chatIndexDiff === 1 && pos === "top")) &&
+				dragInfo.draggedItemInfo.chatGroupIndex === chatGroupIndex
+					? dragInfo.draggedItemInfo.chatIndex
+					: pos === "top"
+					? chatIndex
+					: chatIndex + 1;
+			dragInfo.newPosition = {
+				chatGroupIndex,
+				chatIndex: newChatIndex
+			};
+		} else {
+			// If hovering over the top of a chat group, place it at the end of the previous group.
+			// This is always valid as the ungrouped chat group cannot be dragged over.
+			// Otherwise, add it to the start of the chat group being dragged over
+			if (pos === "top") {
+				const newChatGroupIndex = chatGroupIndex - 1;
+				dragInfo.newPosition = {
+					chatGroupIndex: newChatGroupIndex,
+					chatIndex: chatGroups[newChatGroupIndex].chats.length
+				};
+			} else {
+				dragInfo.newPosition = {
+					chatGroupIndex,
+					chatIndex: 0
+				};
+			}
+		}
+	}
+
+	function onDragEnd() {
+		const curChatGroup = chatGroups[dragInfo.draggedItemInfo.chatGroupIndex];
+		const [item] = curChatGroup.chats.splice(dragInfo.draggedItemInfo.chatIndex, 1);
+
+		const newChatGroup = chatGroups[dragInfo.newPosition.chatGroupIndex];
+		newChatGroup.chats.splice(dragInfo.newPosition.chatIndex, 0, item);
+
+		chatGroups = [...chatGroups];
+
+		document.getElementById("drag-indicator")!.style.cssText = "";
+	}
 </script>
 
 <div class="domain-page">
@@ -112,30 +221,7 @@
 			</div>
 		</div>
 		<div class="section textbox-container">
-			<textarea
-				class="chat-textbox"
-				on:keyup={(e) => {
-					// currently it'll always have the new line character so we need to check for that
-					if (e.key === "Enter" && e.currentTarget.value.length > 1) {
-						const selectedChat = getSelectedChat();
-						if (selectedChat) {
-							selectedChat.messages.push(e.currentTarget.value.trim());
-							chatGroups = chatGroups.map((group) => ({
-								...group,
-								chats: group.chats.map((chat) =>
-									chat.id === selectedChatID
-										? {
-												...chat,
-												messages: [...chat.messages]
-										  }
-										: chat
-								)
-							}));
-							e.currentTarget.value = "";
-						}
-					}
-				}}
-			/>
+			<textarea class="chat-textbox" on:keyup={(e) => sendMessage(e)} />
 		</div>
 	</div>
 	<div
@@ -143,22 +229,31 @@
 		role="none"
 		on:contextmenu={handleChatContainerContextMenu}
 	>
-		{#each sortChatGroups(chatGroups) as chatGroup}
-			<button
+		{#each sortChatGroups(chatGroups) as chatGroup, chatGroupIndex}
+			<div
 				class="chat-group"
 				class:padding={chatGroup.name !== null}
+				role="none"
 				on:click={() => toggleChatsVisibility(chatGroup.id)}
 				on:contextmenu|stopPropagation|preventDefault={(e) =>
 					handleChatGroupContextMenu(e, chatGroup.id)}
 			>
-				{#if chatGroup.name !== null}
-					<div class="name-container">
+				<button
+					class="name-container"
+					on:dragstart={() => {
+						onDragStart(chatGroupIndex, -1);
+					}}
+					on:dragover={(e) => onDragOver(e, true, chatGroupIndex, 0)}
+					draggable={true}
+				>
+					{#if chatGroup.name !== null}
 						<p>{chatGroup.name}</p>
 						<div class="drop-down-icon-container" class:closed={chatGroup.hiddenChats}>
 							<Icon class="drop-down-icon" icon="material-symbols:arrow-drop-down-rounded" />
 						</div>
-					</div>
-				{/if}
+					{/if}
+				</button>
+
 				<div
 					class="chats-container"
 					class:hidden={chatGroup.hiddenChats}
@@ -166,18 +261,24 @@
 					role="none"
 					on:click|stopPropagation
 				>
-					{#each chatGroup.chats as chat}
+					{#each chatGroup.chats as chat, chatIndex}
 						<button
 							class="chat"
 							class:selected={selectedChatID === chat.id}
 							on:click={() => (selectedChatID = chat.id)}
+							on:dragstart={() => onDragStart(chatGroupIndex, chatIndex)}
+							on:dragover={(e) => onDragOver(e, false, chatGroupIndex, chatIndex)}
+							on:dragend={(e) => onDragEnd()}
+							draggable={true}
 						>
 							<p>{chat.name}</p>
 						</button>
 					{/each}
 				</div>
-			</button>
+			</div>
 		{/each}
+
+		<div id="drag-indicator" />
 	</div>
 </div>
 
@@ -273,6 +374,7 @@
 	}
 
 	.name-container {
+		width: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -300,5 +402,11 @@
 		&.selected {
 			background-color: $mainAccentColour;
 		}
+	}
+
+	#drag-indicator {
+		height: 4px;
+		background-color: $mainAccentColour;
+		position: absolute;
 	}
 </style>
