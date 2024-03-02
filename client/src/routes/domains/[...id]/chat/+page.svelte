@@ -163,19 +163,16 @@
 		document.getElementById("drag-indicator")!.style.cssText = style;
 
 		const chatIndexDiff = chatIndex - dragInfo.draggedItemInfo.chatIndex;
-		// If the user is hovering of elements that would be the dragged element in the same positon then leave it there
-		// Otherwise, if the user is dragging on the bottom portion of an element then place it afterwards
+		// If the user is dragging over a chat then get the new index based on where their cursor is
+		// Also need to account for the dragged element's index since it needs to essentially be ignored while it's being dragged
 		if (!isOverChatGroup) {
-			const newChatIndex =
-				((chatIndexDiff === -1 && pos === "bottom") || (chatIndexDiff === 1 && pos === "top")) &&
-				dragInfo.draggedItemInfo.chatGroupIndex === chatGroupIndex
-					? dragInfo.draggedItemInfo.chatIndex
-					: pos === "top"
-					? chatIndex
-					: chatIndex + 1;
+			const newIndex = pos === "top" ? chatIndex : chatIndex + 1;
+			const shouldIgnoreCurIndex =
+				dragInfo.draggedItemInfo.chatIndex < newIndex &&
+				dragInfo.draggedItemInfo.chatGroupIndex === chatGroupIndex;
 			dragInfo.newPosition = {
 				chatGroupIndex,
-				chatIndex: newChatIndex
+				chatIndex: shouldIgnoreCurIndex ? newIndex - 1 : newIndex
 			};
 		} else {
 			// If hovering over the top of a chat group, place it at the end of the previous group.
@@ -202,6 +199,8 @@
 
 		const newChatGroup = chatGroups[dragInfo.newPosition.chatGroupIndex];
 		newChatGroup.chats.splice(dragInfo.newPosition.chatIndex, 0, item);
+		// Make sure the the chat group the element is being added to is opened up
+		newChatGroup.hiddenChats = false;
 
 		chatGroups = [...chatGroups];
 
@@ -408,5 +407,6 @@
 		height: 4px;
 		background-color: $mainAccentColour;
 		position: absolute;
+		outline: $mainElementColour solid $mainBorderWidth;
 	}
 </style>
