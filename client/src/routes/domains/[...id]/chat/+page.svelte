@@ -148,21 +148,20 @@
 		chatIndex: number
 	) {
 		const targetRect = e.currentTarget.getBoundingClientRect();
-		// If the user is mousing nearing the bottom half of the element
 		let pos: "top" | "bottom" = "top";
+		// If the user is mousing nearing the bottom half of the element
 		if (e.pageY >= targetRect.top + targetRect.height / 2) {
 			pos = "bottom";
 		}
 
-		// add half the container's gap value so that the indicator is in the same spot regardless of if it's from the bottom or top of an element
-		// TODO need to change this to be relative to the component as it won't adjust its position/size if the window size changes
+		// Add half the container's gap value so that the indicator is in the same spot regardless of if it's from the bottom or top of an element
+		// TODO need to change the drag indicator to be relative to the component as it won't adjust its position/size if the window size changes
 		const offset = 1 * (pos === "top" ? -1 : 1);
 		const style = `left: ${targetRect.left}px; top: ${
 			(pos === "top" ? targetRect.top : targetRect.bottom) + offset
 		}px; width: ${targetRect.width}px`;
 		document.getElementById("drag-indicator")!.style.cssText = style;
 
-		const chatIndexDiff = chatIndex - dragInfo.draggedItemInfo.chatIndex;
 		// If the user is dragging over a chat then get the new index based on where their cursor is
 		// Also need to account for the dragged element's index since it needs to essentially be ignored while it's being dragged
 		if (!isOverChatGroup) {
