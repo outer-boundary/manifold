@@ -19,7 +19,7 @@
 			<div class="context-menu-item-container">
 				{#each $contextMenuStore.items as item}
 					<button
-						class="context-menu-item"
+						class="context-menu-item {item.theme ?? 'default'}"
 						on:click={() => {
 							item.onClick();
 							contextMenuStore.set(null);
@@ -56,16 +56,26 @@
 	}
 
 	.context-menu-item {
-		padding: 4px;
+		padding: 6px 7px;
 		cursor: pointer;
 		background-color: transparent;
 		color: $mainTextColour;
 		text-align: left;
-		transition: background-color 120ms ease-in;
+		transition-property: background-color, color;
+		transition-duration: 120ms;
+		transition-timing-function: ease-in;
 		border-radius: $mainBorderRadius;
 
-		&:hover {
+		&.default:hover {
 			background-color: $mainAccentColour;
+		}
+
+		&.red {
+			color: rgb(231, 55, 55);
+			&:hover {
+				color: white;
+				background-color: rgb(209, 41, 41);
+			}
 		}
 	}
 </style>

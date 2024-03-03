@@ -8,6 +8,7 @@ interface ContextMenuBase {
 interface ContextMenuItem {
   iconName?: string;
   text: string;
+  theme?: "default" | "red";
   onClick: () => void;
   childActions?: ContextMenuItem[];
 }

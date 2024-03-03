@@ -107,17 +107,43 @@
 	}
 
 	function handleChatGroupContextMenu(e: ElementEvent<MouseEvent, HTMLDivElement>, id: string) {
+		const chatGroupIndex = chatGroups.findIndex((x) => x.id === id)!;
 		contextMenuStore.set({
 			position: { x: e.x, y: e.y },
 			items: [
 				{
 					text: "Create New Chat",
 					onClick: () => {
-						const chatGroup = chatGroups.find((x) => x.id === id)!;
 						const chatID = Date.now().toString();
-						chatGroup.chats.push({ id: chatID, name: "New Chat " + ++chatCount, messages: [] });
+						chatGroups[chatGroupIndex].chats.push({
+							id: chatID,
+							name: "New Chat " + ++chatCount,
+							messages: []
+						});
 						chatGroups = [...chatGroups];
 						selectedChatID = chatID;
+					}
+				},
+				{
+					text: "Delete Chat Group",
+					onClick: () => {
+						chatGroups = chatGroups.filter((x) => x.id === id);
+					},
+					theme: "red"
+				}
+			]
+		});
+	}
+
+	function handleChatContextMenu(e: ElementEvent<MouseEvent, HTMLButtonElement>, id: string) {
+		contextMenuStore.set({
+			position: { x: e.x, y: e.y },
+			items: [
+				{
+					text: "Delete Chat",
+					theme: "red",
+					onClick: () => {
+						// delete chat group (gonna wait till i do the actual implementation cause it'll be easier anyway)
 					}
 				}
 			]
@@ -159,7 +185,7 @@
 		const offset = 1 * (pos === "top" ? -1 : 1);
 		const style = `left: ${targetRect.left}px; top: ${
 			(pos === "top" ? targetRect.top : targetRect.bottom) + offset
-		}px; width: ${targetRect.width}px`;
+		}px; width: ${targetRect.width}px; display: unset`;
 		document.getElementById("drag-indicator")!.style.cssText = style;
 
 		// If the user is dragging over a chat then get the new index based on where their cursor is
@@ -204,6 +230,14 @@
 		chatGroups = [...chatGroups];
 
 		document.getElementById("drag-indicator")!.style.cssText = "";
+	}
+
+	function getChatGroup(id: string, type: "chatGroup" | "chat") {
+		return chatGroups.find((x) => x.id === id);
+	}
+
+	function getChat(id: string) {
+		return chatGroups.flatMap((x) => x.chats).find((x) => x.id === id);
 	}
 </script>
 
@@ -258,6 +292,7 @@
 					class:margin={chatGroup.name !== null}
 					role="none"
 					on:click|stopPropagation
+					on:contextmenu|stopPropagation
 				>
 					{#each chatGroup.chats as chat, chatIndex}
 						<button
@@ -266,7 +301,9 @@
 							on:click={() => (selectedChatID = chat.id)}
 							on:dragstart={() => onDragStart(chatGroupIndex, chatIndex)}
 							on:dragover={(e) => onDragOver(e, false, chatGroupIndex, chatIndex)}
-							on:dragend={(e) => onDragEnd()}
+							on:dragend={() => onDragEnd()}
+							on:contextmenu|preventDefault|stopPropagation={(e) =>
+								handleChatContextMenu(e, chat.id)}
 							draggable={true}
 						>
 							<p>{chat.name}</p>
@@ -407,5 +444,6 @@
 		background-color: $mainAccentColour;
 		position: absolute;
 		outline: $mainElementColour solid $mainBorderWidth;
+		display: none;
 	}
 </style>
